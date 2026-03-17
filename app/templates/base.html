@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Strata{% endblock %}</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ═══════════════════════════════════════════════════════
+       STRATA — Skeuomorphic Studio Console Design System
+    ═══════════════════════════════════════════════════════ */
+    :root {
+      /* Studio console metal surfaces */
+      --metal-bg:     #161616;
+      --metal-panel:  #1e1e1e;
+      --metal-raised: #282828;
+      --metal-edge-hi: rgba(255,255,255,0.07);
+      --metal-edge-lo: rgba(0,0,0,0.7);
+
+      /* LED colors */
+      --led-amber:  #ffb000;
+      --led-green:  #00e040;
+      --led-red:    #ff2828;
+
+      /* Accent — warm amber/gold */
+      --amber:      #d4860a;
+      --amber-hi:   #f0a830;
+      --amber-lo:   #8c5a00;
+      --amber-glow: rgba(212,134,10,0.3);
+      --gold:       #c8a040;
+
+      /* Text hierarchy */
+      --text-hi:    #e8e8e8;
+      --text-mid:   #999;
+      --text-lo:    #555;
+      --text-label: #444; /* engraved */
+
+      /* Layout */
+      --r-sm: 4px;
+      --r:    7px;
+      --r-lg: 12px;
+
+      /* ─ Legacy aliases used by sub-templates ─ */
+      --bg:           #141414;
+      --surface:      #1e1e1e;
+      --surface2:     #242424;
+      --border:       rgba(255,255,255,0.07);
+      --border-hover: rgba(255,255,255,0.14);
+      --text:         #e8e8e8;
+      --muted:        #777;
+      --accent:       #d4860a;
+      --accent-soft:  rgba(212,134,10,0.08);
+      --accent-glow:  rgba(212,134,10,0.3);
+      --radius:       7px;
+      --radius-lg:    12px;
+
+      /* Sub-template variable aliases */
+      --bg1:   #1e1e1e;
+      --bg2:   #242424;
+      --bg3:   #2a2a2a;
+      --line:  rgba(255,255,255,0.05);
+      --line2: rgba(255,255,255,0.09);
+      --white: #e8e8e8;
+      --text2: #aaa;
+      --text3: #666;
+      --r2:    10px;
+      --parchment: #1e1e1e;
+      --parchment2: #242424;
+      --earth: #333;
+      --earth2: #222;
+      --earth3: #111;
+      --moss:  #4a8a2a;
+      --moss2: #5a9a3a;
+      --wood:  #5c3a1e;
+      --cherry: #c04030;
+      --sky:   #3070c0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      background: var(--metal-bg);
+      /* Subtle scanline texture */
+      background-image: repeating-linear-gradient(
+        0deg,
+        transparent 0px, transparent 1px,
+        rgba(0,0,0,0.08) 1px, rgba(0,0,0,0.08) 2px
+      );
+      color: var(--text-hi);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh; margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ══════════════════════════════════════════════════
+       NAVBAR — Studio console top fascia
+    ══════════════════════════════════════════════════ */
+    .navbar {
+      background: linear-gradient(180deg,
+        #2c2c2c 0%,
+        #222 35%,
+        #1c1c1c 100%
+      ) !important;
+      border-bottom: 2px solid #0c0c0c;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.06),
+        0 4px 20px rgba(0,0,0,0.7);
+      padding: 0 !important;
+      position: sticky; top: 0; z-index: 200;
+      /* Rib texture */
+      background-image:
+        linear-gradient(180deg, #2c2c2c 0%, #222 35%, #1c1c1c 100%),
+        repeating-linear-gradient(90deg,
+          transparent 0, transparent 3px,
+          rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 4px
+        ) !important;
+    }
+
+    .navbar-inner {
+      max-width: 1020px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex; align-items: center;
+      height: 52px; gap: 0.3rem;
+    }
+
+    /* Brand / app name */
+    .navbar-brand {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.5rem; font-weight: 700;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--text-hi) !important;
+      text-decoration: none;
+      display: flex; align-items: center; gap: 0.55rem;
+      text-shadow: 0 0 24px rgba(212,134,10,0.4);
+      margin-right: 1rem;
+    }
+
+    .brand-led {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--led-amber);
+      box-shadow: 0 0 5px var(--led-amber), 0 0 14px rgba(255,176,0,0.5);
+      flex-shrink: 0;
+      animation: led-pulse 2.5s ease-in-out infinite;
+    }
+    @keyframes led-pulse {
+      0%,100% { opacity: 1; box-shadow: 0 0 5px var(--led-amber), 0 0 14px rgba(255,176,0,0.5); }
+      50%      { opacity: 0.65; box-shadow: 0 0 2px var(--led-amber); }
+    }
+
+    .navbar-nav-wrap {
+      display: flex; align-items: center; gap: 0.3rem;
+      margin-left: auto;
+    }
+
+    /* Nav button — console push-button style */
+    .nav-btn {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.3rem 0.85rem;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.82rem; font-weight: 600;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      text-decoration: none;
+      color: var(--text-mid);
+      background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
+      border: 1px solid #141414;
+      border-top-color: #363636;
+      border-radius: var(--r-sm);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.06),
+        0 2px 5px rgba(0,0,0,0.5);
+      cursor: pointer; transition: all 0.1s;
+      white-space: nowrap;
+    }
+    .nav-btn:hover {
+      color: var(--text-hi);
+      background: linear-gradient(180deg, #323232 0%, #262626 100%);
+    }
+    .nav-btn:active {
+      background: linear-gradient(180deg, #181818 0%, #222 100%);
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.7);
+      transform: translateY(1px);
+    }
+
+    .nav-btn-amber {
+      color: #000 !important;
+      background: linear-gradient(180deg, #e89a14 0%, #c07808 50%, #a06008 100%);
+      border-color: #7a4800;
+      border-top-color: #f0a830;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.2),
+        0 2px 6px rgba(0,0,0,0.5),
+        0 0 10px rgba(212,134,10,0.2);
+    }
+    .nav-btn-amber:hover {
+      color: #000 !important;
+      background: linear-gradient(180deg, #f0a830 0%, #d08818 50%, #b07010 100%);
+    }
+
+    .nav-btn-red {
+      color: #ff6050 !important;
+      background: linear-gradient(180deg, #2a1e1e 0%, #1e1618 100%);
+      border-color: #150808;
+      border-top-color: #3a2222;
+    }
+    .nav-btn-red:hover {
+      color: #ff8070 !important;
+      background: linear-gradient(180deg, #321e1e 0%, #261616 100%);
+    }
+
+    .nav-divider {
+      width: 1px; height: 22px;
+      background: linear-gradient(180deg, transparent, #2e2e2e, transparent);
+      margin: 0 0.4rem; flex-shrink: 0;
+    }
+
+    .nav-email {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.66rem; color: #4a4a4a;
+      padding: 0 0.5rem;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      max-width: 160px;
+    }
+
+    /* ══════════════════════════════════════════════════
+       FLASH MESSAGES — console readout strips
+    ══════════════════════════════════════════════════ */
+    .flash-wrap { max-width: 880px; margin: 1rem auto; padding: 0 1.5rem; }
+    .flash-msg {
+      background: linear-gradient(180deg, #222 0%, #1c1c1c 100%);
+      border: 1px solid #282828;
+      border-top-color: #303030;
+      border-radius: var(--r);
+      padding: 0.65rem 1rem;
+      font-size: 0.82rem; margin-bottom: 0.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .flash-msg.danger  { border-left: 3px solid var(--led-red);   color: #ff6b6b; }
+    .flash-msg.success { border-left: 3px solid var(--led-green);  color: #40d880; }
+    .flash-msg.info    { border-left: 3px solid #4488ff;           color: #60a5fa; }
+    .flash-msg.warning { border-left: 3px solid var(--led-amber);  color: #ffb840; }
+    .flash-close {
+      background: none; border: none; color: inherit;
+      cursor: pointer; font-size: 1rem; padding: 0; opacity: 0.5;
+    }
+    .flash-close:hover { opacity: 1; }
+
+    /* ══════════════════════════════════════════════════
+       SHARED BUTTONS — console push-button style
+    ══════════════════════════════════════════════════ */
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.58rem 1.3rem;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.9rem; font-weight: 600;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      text-decoration: none; cursor: pointer;
+      border-radius: var(--r);
+      transition: all 0.1s;
+    }
+    .btn-primary {
+      color: #0a0800;
+      background: linear-gradient(180deg, #e89a14 0%, #c07808 55%, #a46008 100%);
+      border: 1px solid #7a4800;
+      border-top-color: #f0a830;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.22),
+        0 4px 14px rgba(0,0,0,0.5),
+        0 0 18px rgba(212,134,10,0.18);
+      text-shadow: 0 1px 0 rgba(255,200,80,0.4);
+    }
+    .btn-primary:hover {
+      color: #0a0800;
+      background: linear-gradient(180deg, #f0a830 0%, #d08818 55%, #b07010 100%);
+      transform: translateY(-1px);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.3),
+        0 6px 20px rgba(0,0,0,0.6),
+        0 0 24px rgba(212,134,10,0.28);
+    }
+    .btn-primary:active {
+      transform: translateY(1px);
+      background: linear-gradient(180deg, #b07010 0%, #c07808 100%);
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.6);
+    }
+    .btn-secondary {
+      color: var(--text-mid);
+      background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
+      border: 1px solid #141414;
+      border-top-color: #363636;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 2px 8px rgba(0,0,0,0.4);
+    }
+    .btn-secondary:hover {
+      color: var(--text-hi);
+      background: linear-gradient(180deg, #323232 0%, #262626 100%);
+    }
+    .btn-secondary:active {
+      transform: translateY(1px);
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.6);
+    }
+    .btn-white {
+      color: #111;
+      background: linear-gradient(180deg, #e4e4e4 0%, #cccccc 100%);
+      border: 1px solid #aaa;
+      border-top-color: #f0f0f0;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 3px 10px rgba(0,0,0,0.5);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+    }
+    .btn-white:hover {
+      color: #000;
+      background: linear-gradient(180deg, #efefef 0%, #d8d8d8 100%);
+    }
+    .btn-white:active { transform: translateY(1px); }
+
+    /* ══════════════════════════════════════════════════
+       PANEL CARD — rack-mount unit face
+    ══════════════════════════════════════════════════ */
+    .panel-card {
+      background: linear-gradient(180deg, #242424 0%, #1c1c1c 60%, #1e1e1e 100%);
+      border: 1px solid #111;
+      border-top-color: #2e2e2e;
+      border-radius: var(--r-lg);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.06),
+        0 8px 30px rgba(0,0,0,0.7),
+        0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    /* ══════════════════════════════════════════════════
+       LED INDICATORS
+    ══════════════════════════════════════════════════ */
+    .led {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%; flex-shrink: 0;
+    }
+    .led-green { background: var(--led-green); box-shadow: 0 0 5px var(--led-green), 0 0 10px rgba(0,224,64,0.4); }
+    .led-amber { background: var(--led-amber); box-shadow: 0 0 5px var(--led-amber), 0 0 10px rgba(255,176,0,0.4); }
+    .led-red   { background: var(--led-red);   box-shadow: 0 0 5px var(--led-red),   0 0 10px rgba(255,40,40,0.4); }
+    .led-off   { background: #1a1000; border: 1px solid #0a0800; }
+
+    /* ══════════════════════════════════════════════════
+       FOOTER — console bottom strip
+    ══════════════════════════════════════════════════ */
+    footer {
+      text-align: center;
+      padding: 1.75rem 1rem;
+      color: var(--text-label);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem; letter-spacing: 0.06em;
+      border-top: 2px solid #0d0d0d;
+      background: linear-gradient(180deg, #181818 0%, #141414 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+      margin-top: 4rem;
+    }
+    footer a { color: #444; text-decoration: none; }
+    footer a:hover { color: var(--text-mid); }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- ══ NAVIGATION / CONSOLE TOP FASCIA ════════════════════════════════ -->
+<nav class="navbar navbar-expand-lg">
+  <div class="navbar-inner">
+    <a class="navbar-brand" href="{{ url_for('main.index') }}">
+      <span class="brand-led"></span>
+      Strata
+    </a>
+
+    <div class="navbar-nav-wrap">
+      {% if current_user.is_authenticated %}
+        <a class="nav-btn" href="{{ url_for('upload.index') }}">⬡ Separate</a>
+        <a class="nav-btn nav-btn-red" href="{{ url_for('downloader.index') }}">▼ Download</a>
+        <a class="nav-btn" href="{{ url_for('upload.history') }}">≡ History</a>
+        <div class="nav-divider"></div>
+        <span class="nav-email">{{ current_user.email }}</span>
+        <a class="nav-btn" href="{{ url_for('auth.logout') }}">⏏ Logout</a>
+      {% else %}
+        <a class="nav-btn" href="{{ url_for('auth.login') }}">Login</a>
+        <a class="nav-btn nav-btn-amber" href="{{ url_for('auth.register') }}">Get Started</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<!-- ══ FLASH MESSAGES ══════════════════════════════════════════════════ -->
+<div class="flash-wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash-msg {{ category }}">
+        <span>{{ message }}</span>
+        <button class="flash-close" onclick="this.parentElement.remove()">✕</button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<!-- ══ PAGE CONTENT ════════════════════════════════════════════════════ -->
+{% block content %}{% endblock %}
+
+<!-- ══ FOOTER ══════════════════════════════════════════════════════════ -->
+<footer>
+  STRATA &nbsp;·&nbsp; Powered by
+  <a href="https://github.com/facebookresearch/demucs">Demucs</a>
+  &amp; <a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a>
+  &nbsp;·&nbsp; All processing is local
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

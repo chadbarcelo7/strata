@@ -1,0 +1,547 @@
+{% extends "base.html" %}
+{% block title %}YouTube Download — Strata{% endblock %}
+
+{% block extra_head %}
+<style>
+  .dl-page {
+    min-height: 92vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 4rem 1.5rem 3rem;
+  }
+
+  .dl-content { width: 100%; max-width: 520px; }
+
+  .dl-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase;
+    color: #3a3a3a; text-align: center; margin-bottom: 0.5rem;
+  }
+  .dl-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 2.2rem; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    text-align: center; color: var(--text-hi);
+    margin-bottom: 0.35rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+  }
+  .dl-title .hi { color: #ff4444; text-shadow: 0 0 20px rgba(255,40,40,0.3); }
+  .dl-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; color: #3a3a3a;
+    text-align: center; margin-bottom: 2rem;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── MAIN CONSOLE ─────────────────────────────────────────────────── */
+  .dl-console {
+    background: linear-gradient(180deg, #242424 0%, #1c1c1c 60%, #1e1e1e 100%);
+    border: 1px solid #111; border-top-color: #303030;
+    border-radius: var(--r-lg);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.06),
+      0 20px 60px rgba(0,0,0,0.7), 0 4px 16px rgba(0,0,0,0.4);
+    overflow: hidden; margin-bottom: 0.75rem;
+  }
+
+  /* Top strip */
+  .dl-strip {
+    height: 28px;
+    background: linear-gradient(180deg, #2a2a2a 0%, #222 100%);
+    border-bottom: 1px solid #111;
+    display: flex; align-items: center; padding: 0 1rem; gap: 0.5rem;
+  }
+  .dl-screw {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #3a3a3a 0%, #1e1e1e 70%, #141414 100%);
+    border: 1px solid #0e0e0e;
+    box-shadow: inset -1px -1px 2px rgba(0,0,0,0.5);
+  }
+  .dl-strip-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #2e2e2e; margin: 0 auto;
+  }
+  .dl-strip-led {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #1a0000; border: 1px solid #0a0000;
+  }
+  .dl-strip-led.on {
+    background: #ff4444;
+    box-shadow: 0 0 5px #ff4444, 0 0 10px rgba(255,40,40,0.4);
+    border-color: #3a0000;
+  }
+
+  .dl-body { padding: 1.75rem; }
+
+  /* URL input row */
+  .url-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+  .url-wrap { flex: 1; position: relative; }
+  .url-icon {
+    position: absolute; left: 0.8rem; top: 50%;
+    transform: translateY(-50%); pointer-events: none;
+    color: #3a3a3a; font-size: 0.8rem; z-index: 1;
+  }
+  .url-input {
+    width: 100%; padding: 0.7rem 0.85rem 0.7rem 2.1rem;
+    background: linear-gradient(180deg, #131313 0%, #181818 100%);
+    border: 1px solid #0d0d0d; border-bottom-color: #222;
+    border-radius: var(--r-sm);
+    color: var(--text-hi); font-size: 0.82rem;
+    font-family: 'JetBrains Mono', monospace;
+    outline: none;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+    transition: border-color 0.15s; box-sizing: border-box;
+  }
+  .url-input:focus {
+    border-color: rgba(255,40,40,0.3);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.6), 0 0 8px rgba(255,40,40,0.06);
+  }
+  .url-input::placeholder { color: #2e2e2e; font-family: 'Inter', sans-serif; }
+
+  /* Paste button */
+  .paste-btn {
+    padding: 0 1rem;
+    background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
+    border: 1px solid #141414; border-top-color: #363636;
+    border-radius: var(--r-sm);
+    color: var(--text-mid);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    cursor: pointer; white-space: nowrap;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 4px rgba(0,0,0,0.3);
+    transition: all 0.1s;
+  }
+  .paste-btn:hover { color: var(--text-hi); background: linear-gradient(180deg, #323232 0%, #262626 100%); }
+  .paste-btn:active { transform: translateY(1px); box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+
+  /* Format selector — toggle switches */
+  .format-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
+  .format-opt {
+    background: linear-gradient(180deg, #1e1e1e 0%, #181818 100%);
+    border: 1px solid #141414; border-top-color: #282828;
+    border-radius: var(--r-sm); padding: 0.75rem 0.9rem;
+    cursor: pointer; display: flex; align-items: center; gap: 0.6rem;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 2px 4px rgba(0,0,0,0.3);
+    transition: all 0.15s;
+  }
+  .format-opt:hover { border-top-color: #383838; }
+  .format-opt.active {
+    background: linear-gradient(180deg, #1e1800 0%, #181400 100%);
+    border-color: #2a2000; border-top-color: rgba(212,134,10,0.4);
+    box-shadow: inset 0 1px 0 rgba(212,134,10,0.06), 0 0 8px rgba(212,134,10,0.04);
+  }
+  .format-opt input[type=radio] { display: none; }
+  .format-radio {
+    width: 13px; height: 13px; border-radius: 50%;
+    border: 1.5px solid #2a2a2a; flex-shrink: 0;
+    background: #111;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+    position: relative; transition: border-color 0.15s;
+  }
+  .format-opt.active .format-radio {
+    border-color: var(--led-amber);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5), 0 0 6px rgba(255,176,0,0.3);
+  }
+  .format-opt.active .format-radio::after {
+    content: ''; position: absolute; inset: 2px;
+    border-radius: 50%; background: var(--led-amber);
+    box-shadow: 0 0 4px var(--led-amber);
+  }
+  .format-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.85rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text-mid);
+  }
+  .format-opt.active .format-name { color: var(--text-hi); }
+  .format-desc { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: #3a3a3a; }
+  .format-pill {
+    margin-left: auto; flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    padding: 0.15rem 0.45rem;
+    border: 1px solid #1e1e1e; border-radius: 2px;
+    color: #3a3a3a;
+  }
+  .format-opt.active .format-pill { border-color: #2a2800; color: #555; }
+
+  /* Download button */
+  .dl-btn {
+    width: 100%; padding: 0.9rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: #fff;
+    background: linear-gradient(180deg, #cc3030 0%, #aa2020 55%, #882020 100%);
+    border: 1px solid #660000; border-top-color: #ee4444;
+    border-radius: var(--r-sm);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.12),
+      0 4px 14px rgba(0,0,0,0.5), 0 0 14px rgba(255,40,40,0.1);
+    cursor: pointer; display: flex;
+    align-items: center; justify-content: center; gap: 0.6rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    transition: all 0.1s;
+  }
+  .dl-btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, #ee3838 0%, #cc2828 55%, #aa2020 100%);
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.18),
+      0 6px 20px rgba(0,0,0,0.6), 0 0 20px rgba(255,40,40,0.15);
+  }
+  .dl-btn:active { transform: translateY(1px); box-shadow: inset 0 3px 6px rgba(0,0,0,0.6); }
+  .dl-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+  .dl-btn-icon { font-size: 1.1rem; }
+  .dl-btn.loading .dl-btn-icon { animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── RESULT CARD ─────────────────────────────────────────────────── */
+  .result-card { display: none; }
+  .result-card.visible { display: block; }
+  .result-card .dl-body { padding-top: 1.25rem; padding-bottom: 1.25rem; }
+
+  /* Progress bar — VU style */
+  .result-bar-wrap {
+    height: 6px;
+    background: #111; border: 1px solid #0d0d0d;
+    border-radius: 2px; margin-bottom: 1rem; overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);
+  }
+  .result-bar {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #cc2020, #ff4444);
+    border-radius: 1px;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 6px rgba(255,40,40,0.5);
+  }
+  .result-bar.active { animation: indeterminate 1.5s ease-in-out infinite; }
+  @keyframes indeterminate {
+    0%   { width: 0%;  margin-left: 0; }
+    50%  { width: 40%; margin-left: 30%; }
+    100% { width: 0%;  margin-left: 100%; }
+  }
+
+  .result-status {
+    display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.85rem;
+  }
+  .result-spinner {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 1.5px solid #2a2a2a; border-top-color: #ff4444;
+    animation: spin 0.8s linear infinite; display: none; flex-shrink: 0;
+  }
+  .result-status.loading .result-spinner { display: block; }
+  .result-status-txt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; color: var(--text-mid);
+  }
+  .result-status.done  .result-status-txt { color: var(--led-green); }
+  .result-status.error .result-status-txt { color: var(--led-red); }
+
+  .result-track {
+    display: none; align-items: center; gap: 0.85rem;
+    padding: 0.85rem;
+    background: linear-gradient(180deg, #181818 0%, #141414 100%);
+    border: 1px solid #111; border-top-color: #242424;
+    border-radius: var(--r-sm);
+    margin-bottom: 0.75rem;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .result-track.visible { display: flex; }
+  .result-thumb {
+    width: 46px; height: 46px;
+    border-radius: var(--r-sm); object-fit: cover; flex-shrink: 0;
+    border: 1px solid #1e1e1e;
+  }
+  .result-thumb-ph {
+    width: 46px; height: 46px; border-radius: var(--r-sm);
+    background: #1a1a1a; border: 1px solid #111;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; flex-shrink: 0;
+  }
+  .result-meta { flex: 1; min-width: 0; }
+  .result-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem; font-weight: 600; letter-spacing: 0.03em;
+    color: var(--text-hi);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .result-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem; color: #3a3a3a; margin-top: 0.2rem;
+  }
+  .result-dl {
+    background: linear-gradient(180deg, #1a4a1a 0%, #0e380e 100%);
+    color: var(--led-green);
+    border: 1px solid #0a2a0a; border-top-color: #2a6a2a;
+    border-radius: var(--r-sm);
+    padding: 0.45rem 0.85rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    cursor: pointer; display: flex; align-items: center; gap: 0.35rem;
+    text-decoration: none; flex-shrink: 0;
+    box-shadow: inset 0 1px 0 rgba(0,224,64,0.08), 0 0 10px rgba(0,224,64,0.06);
+    transition: all 0.1s;
+  }
+  .result-dl:hover { color: #80ff80; }
+
+  /* ── HISTORY ─────────────────────────────────────────────────────── */
+  .dl-history { display: none; margin-top: 0.75rem; }
+  .dl-hist-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem; color: #2e2e2e;
+    letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.6rem;
+  }
+  .hist-item {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #151515;
+  }
+  .hist-item:last-child { border-bottom: none; }
+  .hist-icon { font-size: 0.85rem; flex-shrink: 0; }
+  .hist-name {
+    flex: 1;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.8rem; font-weight: 500; letter-spacing: 0.02em;
+    color: var(--text-mid);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .hist-fmt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; color: #333; flex-shrink: 0;
+  }
+  .hist-dl {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--led-green); text-decoration: none; flex-shrink: 0;
+  }
+  .hist-dl:hover { text-decoration: underline; }
+
+  /* ── NOTICE ──────────────────────────────────────────────────────── */
+  .dl-notice {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; color: #2e2e2e;
+    text-align: center; margin-top: 1.25rem;
+    line-height: 1.8; letter-spacing: 0.03em;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dl-page">
+  <div class="dl-content">
+    <div class="dl-eyebrow">// youtube audio extraction</div>
+    <h1 class="dl-title">Download <span class="hi">high-quality</span><br>audio from YouTube</h1>
+    <p class="dl-sub">MP3 320kbps or lossless WAV &nbsp;·&nbsp; free &amp; fast</p>
+
+    <!-- Main input console -->
+    <div class="dl-console">
+      <div class="dl-strip">
+        <div class="dl-screw"></div>
+        <div class="dl-strip-label">STRATA — YOUTUBE EXTRACTOR</div>
+        <div class="dl-strip-led" id="dlLed"></div>
+        <div class="dl-screw"></div>
+      </div>
+
+      <div class="dl-body">
+        <div class="url-row">
+          <div class="url-wrap">
+            <span class="url-icon">🔗</span>
+            <input type="text" class="url-input" id="yt-url"
+                   placeholder="Paste YouTube URL…"
+                   autocomplete="off" spellcheck="false">
+          </div>
+          <button class="paste-btn" id="paste-btn">Paste</button>
+        </div>
+
+        <div class="format-row">
+          <label class="format-opt active" id="opt-mp3">
+            <input type="radio" name="fmt" value="mp3" checked>
+            <div class="format-radio"></div>
+            <div>
+              <div class="format-name">MP3</div>
+              <div class="format-desc">Universal · smaller file</div>
+            </div>
+            <span class="format-pill">320 kbps</span>
+          </label>
+          <label class="format-opt" id="opt-wav">
+            <input type="radio" name="fmt" value="wav">
+            <div class="format-radio"></div>
+            <div>
+              <div class="format-name">WAV</div>
+              <div class="format-desc">Lossless · studio quality</div>
+            </div>
+            <span class="format-pill">PCM 44.1k</span>
+          </label>
+        </div>
+
+        <button class="dl-btn" id="dl-btn">
+          <span class="dl-btn-icon" id="dl-icon">▼</span>
+          <span id="dl-text">Download</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Result console -->
+    <div class="dl-console result-card" id="result-card">
+      <div class="dl-strip">
+        <div class="dl-screw"></div>
+        <div class="dl-strip-label">STATUS</div>
+        <div class="dl-screw"></div>
+      </div>
+      <div class="dl-body">
+        <div class="result-bar-wrap"><div class="result-bar" id="result-bar"></div></div>
+        <div class="result-status loading" id="result-status">
+          <div class="result-spinner"></div>
+          <div class="result-status-txt" id="result-status-txt">Starting…</div>
+        </div>
+        <div class="result-track" id="result-track">
+          <div class="result-thumb-ph" id="result-thumb-wrap">🎵</div>
+          <div class="result-meta">
+            <div class="result-title" id="result-title">—</div>
+            <div class="result-sub"   id="result-sub">—</div>
+          </div>
+          <a class="result-dl" id="result-dl" href="#" style="display:none">▼ Save</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Session history -->
+    <div class="dl-history" id="dl-history">
+      <div class="dl-hist-title">// this session</div>
+      <div id="hist-list"></div>
+    </div>
+
+    <div class="dl-notice">
+      For personal use only. Respect copyright and YouTube's Terms of Service.<br>
+      Only download content you have the right to access.
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const START_URL  = "{{ url_for('downloader.start') }}";
+const STATUS_URL = "{{ url_for('downloader.job_status', job_id='JOB_ID') }}";
+const FILE_URL   = "{{ url_for('downloader.get_file', job_id='JOB_ID') }}";
+
+const urlInput   = document.getElementById('yt-url');
+const dlBtn      = document.getElementById('dl-btn');
+const dlIcon     = document.getElementById('dl-icon');
+const dlText     = document.getElementById('dl-text');
+const dlLed      = document.getElementById('dlLed');
+const resultCard = document.getElementById('result-card');
+const resultBar  = document.getElementById('result-bar');
+const statusEl   = document.getElementById('result-status');
+const statusTxt  = document.getElementById('result-status-txt');
+const trackEl    = document.getElementById('result-track');
+const titleEl    = document.getElementById('result-title');
+const subEl      = document.getElementById('result-sub');
+const dlLink     = document.getElementById('result-dl');
+const histDiv    = document.getElementById('dl-history');
+const histList   = document.getElementById('hist-list');
+
+let fmt = 'mp3';
+document.querySelectorAll('.format-opt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    fmt = opt.querySelector('input').value;
+    document.querySelectorAll('.format-opt').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+  });
+});
+
+document.getElementById('paste-btn').addEventListener('click', async () => {
+  try { urlInput.value = (await navigator.clipboard.readText()).trim(); } catch(e) {}
+  urlInput.focus();
+});
+
+function startBar() {
+  resultBar.style.width = '0%'; resultBar.classList.add('active');
+}
+function finishBar(ok) {
+  resultBar.classList.remove('active');
+  resultBar.style.width = ok ? '100%' : '0%';
+  if (ok) resultBar.style.background = 'linear-gradient(90deg, #006600, #00cc00)';
+}
+function setStatus(state, txt) {
+  statusEl.className = 'result-status ' + state;
+  statusTxt.textContent = txt;
+}
+
+const dlHistory = [];
+function addHistory(title, f, jobId) {
+  dlHistory.unshift({title, f, jobId});
+  histDiv.style.display = 'block';
+  histList.innerHTML = dlHistory.map(h => `
+    <div class="hist-item">
+      <span class="hist-icon">${h.f==='wav'?'💿':'🎵'}</span>
+      <span class="hist-name">${h.title}</span>
+      <span class="hist-fmt">${h.f.toUpperCase()}</span>
+      <a class="hist-dl" href="${FILE_URL.replace('JOB_ID',h.jobId)}" download>▼ Save</a>
+    </div>`).join('');
+}
+
+dlBtn.addEventListener('click', async () => {
+  const url = urlInput.value.trim();
+  if (!url) { urlInput.focus(); return; }
+
+  dlBtn.disabled = true; dlBtn.classList.add('loading');
+  dlIcon.textContent = '⟳'; dlText.textContent = 'Starting…';
+  dlLed.classList.add('on');
+  resultCard.classList.add('visible');
+  trackEl.classList.remove('visible'); dlLink.style.display = 'none';
+  setStatus('loading', 'Fetching video info…');
+  startBar();
+
+  let jobId;
+  try {
+    const r = await fetch(START_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({url, format: fmt})
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed to start');
+    jobId = d.job_id;
+  } catch(e) {
+    finishBar(false); setStatus('error','✕ ' + e.message); reset(); return;
+  }
+
+  dlText.textContent = 'Downloading…';
+  setStatus('loading', 'Downloading from YouTube…');
+
+  const poll = setInterval(async () => {
+    try {
+      const r = await fetch(STATUS_URL.replace('JOB_ID', jobId));
+      const j = await r.json();
+      if (j.status === 'done') {
+        clearInterval(poll); finishBar(true);
+        titleEl.textContent = j.title || 'Unknown';
+        subEl.textContent = [j.duration, j.format==='wav'?'WAV · Lossless':'MP3 · 320kbps'].filter(Boolean).join(' · ');
+        const tw = document.getElementById('result-thumb-wrap');
+        if (j.thumb) tw.innerHTML = `<img class="result-thumb" src="${j.thumb}" onerror="this.parentElement.textContent='🎵'">`;
+        trackEl.classList.add('visible');
+        dlLink.href = FILE_URL.replace('JOB_ID', jobId);
+        dlLink.style.display = 'flex';
+        setStatus('done', '✓ Ready to save');
+        addHistory(j.title||'Unknown', j.format, jobId);
+        reset();
+        const a = document.createElement('a'); a.href = dlLink.href; a.download=''; a.click();
+      } else if (j.status === 'error') {
+        clearInterval(poll); finishBar(false);
+        setStatus('error', '✕ ' + (j.error||'Download failed')); reset();
+      }
+    } catch(e) {}
+  }, 2000);
+});
+
+function reset() {
+  dlBtn.disabled = false; dlBtn.classList.remove('loading');
+  dlIcon.textContent = '▼'; dlText.textContent = 'Download';
+}
+
+urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') dlBtn.click(); });
+</script>
+{% endblock %}

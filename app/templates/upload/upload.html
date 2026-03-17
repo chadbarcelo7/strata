@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+{% block title %}Upload — Strata{% endblock %}
+
+{% block extra_head %}
+<style>
+  .upload-page {
+    min-height: 92vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 4rem 1.5rem 3rem;
+  }
+
+  .upload-content { width: 100%; max-width: 520px; }
+
+  /* Page title — engraved look */
+  .upload-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase;
+    color: #444; text-align: center; margin-bottom: 0.5rem;
+  }
+  .upload-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 2.2rem; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    text-align: center; color: var(--text-hi);
+    margin-bottom: 0.35rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+  }
+  .upload-title .hi { color: var(--led-amber); }
+  .upload-sub {
+    font-size: 0.8rem; color: var(--text-lo);
+    text-align: center; margin-bottom: 2rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── MAIN CONSOLE PANEL ───────────────────────────────────────────── */
+  .drop-console {
+    background: linear-gradient(180deg, #242424 0%, #1c1c1c 60%, #1e1e1e 100%);
+    border: 1px solid #111;
+    border-top-color: #303030;
+    border-radius: var(--r-lg);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.06),
+      0 20px 60px rgba(0,0,0,0.7),
+      0 4px 16px rgba(0,0,0,0.4);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Top chrome strip with screws */
+  .console-top-strip {
+    height: 32px;
+    background: linear-gradient(180deg, #2e2e2e 0%, #242424 100%);
+    border-bottom: 1px solid #111;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    display: flex; align-items: center;
+    padding: 0 1rem;
+    gap: 0.5rem;
+  }
+  .strip-screw {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #444 0%, #252525 60%, #1a1a1a 100%);
+    border: 1px solid #111;
+    box-shadow: inset -1px -1px 2px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,255,255,0.06);
+    flex-shrink: 0;
+  }
+  .strip-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #3a3a3a; margin-left: auto; margin-right: auto;
+  }
+  .strip-led {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #1a1000; border: 1px solid #0a0800;
+    flex-shrink: 0;
+  }
+  .strip-led.on {
+    background: var(--led-amber);
+    box-shadow: 0 0 5px var(--led-amber), 0 0 10px rgba(255,176,0,0.4);
+    border-color: #3a2800;
+  }
+
+  .console-body { padding: 2rem; }
+
+  /* ── DROP ZONE — tape deck mouth ─────────────────────────────────── */
+  .drop-zone {
+    border: 2px dashed #2a2a2a;
+    border-radius: var(--r);
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    background: linear-gradient(180deg, #181818 0%, #141414 100%);
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+  }
+  .drop-zone:hover {
+    border-color: rgba(212,134,10,0.35);
+    background: linear-gradient(180deg, #1c1a14 0%, #161410 100%);
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.5), 0 0 14px rgba(212,134,10,0.06);
+  }
+  .drop-zone.drag-over {
+    border-color: rgba(212,134,10,0.6);
+    background: linear-gradient(180deg, #201e14 0%, #181610 100%);
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.5), 0 0 20px rgba(212,134,10,0.1);
+  }
+
+  .drop-icon-wrap {
+    width: 52px; height: 52px; margin: 0 auto 1.1rem;
+    background: linear-gradient(180deg, #252525 0%, #1a1a1a 100%);
+    border: 1px solid #111; border-top-color: #333;
+    border-radius: var(--r-sm);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 3px 8px rgba(0,0,0,0.4);
+    transition: transform 0.2s;
+  }
+  .drop-zone:hover .drop-icon-wrap { transform: translateY(-2px); }
+  .drop-icon-wrap svg { width: 22px; height: 22px; stroke: #555; fill: none; }
+
+  .drop-main-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text-mid); margin-bottom: 0.3rem;
+  }
+  .drop-sub-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; color: #444; margin-bottom: 1.25rem;
+  }
+
+  /* Browse button — push button style */
+  .browse-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.45rem 1rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.78rem; font-weight: 600;
+    letter-spacing: 0.07em; text-transform: uppercase;
+    color: var(--text-mid);
+    background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
+    border: 1px solid #141414; border-top-color: #363636;
+    border-radius: var(--r-sm);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 2px 5px rgba(0,0,0,0.4);
+    cursor: pointer; transition: all 0.1s;
+  }
+  .browse-btn:hover {
+    color: var(--text-hi);
+    background: linear-gradient(180deg, #323232 0%, #262626 100%);
+    border-top-color: var(--led-amber);
+  }
+  .browse-btn:active {
+    transform: translateY(1px);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+  }
+
+  /* File selected readout */
+  .file-selected {
+    display: none; margin-top: 1rem;
+    align-items: center; gap: 0.6rem;
+    padding: 0.55rem 0.85rem;
+    background: linear-gradient(180deg, #161600 0%, #111100 100%);
+    border: 1px solid #2a2800;
+    border-top-color: #3a3800;
+    border-radius: var(--r-sm);
+    font-size: 0.75rem; color: var(--led-amber);
+    font-family: 'JetBrains Mono', monospace;
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.4), 0 0 8px rgba(212,134,10,0.06);
+  }
+  .file-selected.show { display: flex; }
+  .file-led {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--led-green);
+    box-shadow: 0 0 5px var(--led-green);
+    flex-shrink: 0;
+  }
+  .file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Submit button */
+  .upload-submit {
+    width: 100%; margin-top: 1.25rem;
+    padding: 0.9rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: #0a0800;
+    background: linear-gradient(180deg, #e89a14 0%, #c07808 55%, #a46008 100%);
+    border: 1px solid #7a4800; border-top-color: #f0a830;
+    border-radius: var(--r-sm);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.22),
+      0 4px 14px rgba(0,0,0,0.5), 0 0 16px rgba(212,134,10,0.15);
+    cursor: pointer;
+    text-shadow: 0 1px 0 rgba(255,200,80,0.4);
+    display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+    transition: all 0.1s;
+  }
+  .upload-submit:hover {
+    background: linear-gradient(180deg, #f0a830 0%, #d08818 55%, #b07010 100%);
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.3),
+      0 6px 20px rgba(0,0,0,0.6), 0 0 22px rgba(212,134,10,0.25);
+  }
+  .upload-submit:active {
+    transform: translateY(1px);
+    background: linear-gradient(180deg, #b07010 0%, #c07808 100%);
+    box-shadow: inset 0 3px 6px rgba(0,0,0,0.6);
+  }
+  .upload-submit:disabled {
+    opacity: 0.35; cursor: not-allowed; transform: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+
+  /* Output stem chips */
+  .outputs-row {
+    margin-top: 1.1rem;
+    display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+  }
+  .outputs-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #444; flex-shrink: 0;
+  }
+  .output-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.06em;
+    padding: 0.2rem 0.55rem;
+    background: #1a1a1a; border: 1px solid #222;
+    border-radius: 2px; color: #444;
+  }
+
+  /* Bottom hint strip */
+  .console-bottom {
+    background: linear-gradient(180deg, #1a1a1a 0%, #181818 100%);
+    border-top: 1px solid #111;
+    padding: 0.75rem 2rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem; color: #333;
+    text-align: center;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upload-page">
+  <div class="upload-content">
+    <div class="upload-eyebrow">// audio stem separation unit</div>
+    <h1 class="upload-title">Split your track into<br><span class="hi">pure stems</span></h1>
+    <p class="upload-sub">Powered by Demucs htdemucs_6s · Vocals / Drums / Bass / Guitar / Piano / Other</p>
+
+    <div class="drop-console" id="dropConsole">
+      <div class="console-top-strip">
+        <div class="strip-screw"></div>
+        <div class="strip-label">STRATA — STEM SEPARATOR</div>
+        <div class="strip-led" id="statusLed"></div>
+        <div class="strip-screw"></div>
+      </div>
+
+      <div class="console-body">
+        <form method="POST" enctype="multipart/form-data"
+              action="{{ url_for('upload.index') }}" id="uploadForm">
+
+          <div class="drop-zone" id="dropZone">
+            <div class="drop-icon-wrap">
+              <svg viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+              </svg>
+            </div>
+            <div class="drop-main-text">Drop your audio file here</div>
+            <div class="drop-sub-text">or click to browse &nbsp;·&nbsp; MP3 WAV FLAC OGG M4A AIFF</div>
+            <label class="browse-btn" for="audio_file">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+              </svg>
+              Choose file
+            </label>
+            <input type="file" id="audio_file" name="audio_file"
+                   accept=".mp3,.wav,.flac,.ogg,.m4a,.aiff"
+                   style="display:none" required>
+          </div>
+
+          <div class="file-selected" id="fileSelected">
+            <span class="file-led"></span>
+            <span class="file-name" id="fileName"></span>
+          </div>
+
+          <button type="submit" class="upload-submit" id="submitBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" id="submitIcon">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+            <span id="submitText">Upload &amp; Separate</span>
+          </button>
+
+          <div class="outputs-row">
+            <span class="outputs-label">Outputs:</span>
+            <span class="output-chip">Vocals</span>
+            <span class="output-chip">Drums</span>
+            <span class="output-chip">Bass</span>
+            <span class="output-chip">Guitar</span>
+            <span class="output-chip">Piano</span>
+            <span class="output-chip">Other</span>
+          </div>
+        </form>
+      </div>
+
+      <div class="console-bottom">
+        MAX 100 MB &nbsp;·&nbsp; PROCESSING TIME ~2–8 MIN &nbsp;·&nbsp; WAV OUTPUT
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const dropZone    = document.getElementById('dropZone');
+  const fileInput   = document.getElementById('audio_file');
+  const fileSelected= document.getElementById('fileSelected');
+  const fileName    = document.getElementById('fileName');
+  const submitBtn   = document.getElementById('submitBtn');
+  const submitText  = document.getElementById('submitText');
+  const statusLed   = document.getElementById('statusLed');
+  const form        = document.getElementById('uploadForm');
+
+  const setFile = name => {
+    fileName.textContent = name;
+    fileSelected.classList.add('show');
+    statusLed.classList.add('on');
+  };
+
+  dropZone.addEventListener('click', e => {
+    if (!e.target.closest('label')) fileInput.click();
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) setFile(fileInput.files[0].name);
+  });
+
+  ['dragenter','dragover'].forEach(ev => {
+    document.addEventListener(ev, e => {
+      e.preventDefault();
+      dropZone.classList.add('drag-over');
+    });
+  });
+  ['dragleave','drop'].forEach(ev => {
+    document.addEventListener(ev, () => dropZone.classList.remove('drag-over'));
+  });
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    if (e.dataTransfer.files[0]) {
+      const dt = new DataTransfer();
+      dt.items.add(e.dataTransfer.files[0]);
+      fileInput.files = dt.files;
+      setFile(e.dataTransfer.files[0].name);
+    }
+  });
+
+  form.addEventListener('submit', () => {
+    submitBtn.disabled = true;
+    submitText.textContent = 'Uploading…';
+  });
+</script>
+{% endblock %}

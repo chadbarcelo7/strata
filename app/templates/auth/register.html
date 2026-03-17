@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}Create Account — Strata{% endblock %}
+
+{% block extra_head %}
+<style>
+  .auth-page {
+    min-height: 92vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 4rem 1.5rem;
+  }
+  .auth-panel { width: 100%; max-width: 400px; position: relative; }
+  .auth-panel-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase;
+    color: #444; text-align: center; margin-bottom: 0.6rem;
+  }
+  .auth-card {
+    background: linear-gradient(180deg, #242424 0%, #1c1c1c 60%, #1e1e1e 100%);
+    border: 1px solid #111; border-top-color: #303030;
+    border-radius: var(--r-lg);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.06),
+      0 20px 60px rgba(0,0,0,0.8), 0 4px 16px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+  .auth-chrome-strip {
+    height: 6px;
+    background: linear-gradient(180deg, #383838 0%, #2a2a2a 100%);
+    border-bottom: 1px solid #111;
+    display: flex; align-items: center; justify-content: flex-end;
+    padding: 0 10px; gap: 5px;
+  }
+  .auth-chrome-dot { width: 5px; height: 5px; border-radius: 50%; background: #222; border: 1px solid #333; }
+  .auth-body { padding: 2rem; }
+  .auth-logo-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.75rem; }
+  .auth-logo-led {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--led-amber);
+    box-shadow: 0 0 6px var(--led-amber), 0 0 14px rgba(255,176,0,0.4); flex-shrink: 0;
+  }
+  .auth-logo-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.2rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--text-hi);
+    text-shadow: 0 0 20px rgba(212,134,10,0.3);
+  }
+  .auth-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.55rem; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--text-hi); margin-bottom: 0.25rem;
+  }
+  .auth-sub {
+    font-size: 0.78rem; color: var(--text-lo);
+    margin-bottom: 1.75rem;
+    font-family: 'JetBrains Mono', monospace; letter-spacing: 0.03em;
+  }
+  .field { margin-bottom: 1rem; }
+  .field label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-lo); margin-bottom: 0.45rem;
+  }
+  .field input {
+    width: 100%; padding: 0.65rem 0.9rem;
+    background: linear-gradient(180deg, #131313 0%, #181818 100%);
+    border: 1px solid #0d0d0d; border-bottom-color: #222;
+    border-radius: var(--r-sm);
+    color: var(--text-hi); font-size: 0.85rem;
+    font-family: 'JetBrains Mono', monospace;
+    outline: none;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(0,0,0,0.4);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
+  }
+  .field input:focus {
+    border-color: rgba(212,134,10,0.4);
+    box-shadow:
+      inset 0 2px 6px rgba(0,0,0,0.6),
+      0 0 0 1px rgba(212,134,10,0.2),
+      0 0 8px rgba(212,134,10,0.08);
+  }
+  .field input::placeholder { color: #333; }
+  .field-hint {
+    font-size: 0.65rem; color: #444; margin-top: 0.35rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .field-hint.err { color: #ff5544; }
+  .field-hint.ok  { color: var(--led-green); }
+
+  .auth-submit {
+    width: 100%; margin-top: 0.5rem; padding: 0.85rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: #0a0800;
+    background: linear-gradient(180deg, #e89a14 0%, #c07808 55%, #a46008 100%);
+    border: 1px solid #7a4800; border-top-color: #f0a830;
+    border-radius: var(--r-sm);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.22),
+      0 4px 14px rgba(0,0,0,0.5), 0 0 16px rgba(212,134,10,0.15);
+    cursor: pointer;
+    text-shadow: 0 1px 0 rgba(255,200,80,0.4); transition: all 0.1s;
+  }
+  .auth-submit:hover {
+    background: linear-gradient(180deg, #f0a830 0%, #d08818 55%, #b07010 100%);
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.3),
+      0 6px 20px rgba(0,0,0,0.6), 0 0 22px rgba(212,134,10,0.25);
+  }
+  .auth-submit:active {
+    transform: translateY(1px);
+    background: linear-gradient(180deg, #b07010 0%, #c07808 100%);
+    box-shadow: inset 0 3px 6px rgba(0,0,0,0.6);
+  }
+  .auth-footer {
+    border-top: 1px solid #111;
+    background: linear-gradient(180deg, #1a1a1a 0%, #181818 100%);
+    padding: 1rem 2rem; text-align: center;
+    font-size: 0.78rem; color: var(--text-lo);
+  }
+  .auth-footer a {
+    color: var(--text-mid); text-decoration: none;
+    font-family: 'Rajdhani', sans-serif; font-weight: 600; letter-spacing: 0.04em;
+  }
+  .auth-footer a:hover { color: var(--led-amber); }
+  .msg {
+    border-radius: var(--r-sm); padding: 0.6rem 0.85rem;
+    margin-bottom: 1rem; border: 1px solid;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+  }
+  .msg-error   { background: rgba(255,40,40,0.06);  border-color: rgba(255,40,40,0.25);  color: #ff6b6b; }
+  .msg-success { background: rgba(0,224,64,0.06);   border-color: rgba(0,224,64,0.25);   color: #40d880; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-panel">
+    <div class="auth-panel-label">// new user registration</div>
+
+    <div class="auth-card">
+      <div class="auth-chrome-strip">
+        <div class="auth-chrome-dot"></div>
+        <div class="auth-chrome-dot"></div>
+        <div class="auth-chrome-dot"></div>
+      </div>
+
+      <div class="auth-body">
+        <div class="auth-logo-row">
+          <div class="auth-logo-led"></div>
+          <div class="auth-logo-text">Strata</div>
+        </div>
+
+        <div class="auth-title">Create account</div>
+        <div class="auth-sub">start separating tracks for free</div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div class="msg {{ 'msg-error' if category == 'danger' else 'msg-success' }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('auth.register') }}" id="regForm">
+          <div class="field">
+            <label for="email">Email address</label>
+            <input type="email" id="email" name="email"
+                   required autofocus autocomplete="email"
+                   placeholder="you@example.com">
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password"
+                   required minlength="8" autocomplete="new-password"
+                   placeholder="min. 8 characters">
+            <div class="field-hint">Minimum 8 characters</div>
+          </div>
+          <div class="field">
+            <label for="confirm">Confirm password</label>
+            <input type="password" id="confirm" name="confirm"
+                   required autocomplete="new-password"
+                   placeholder="repeat password">
+            <div class="field-hint err" id="match-hint" style="display:none">
+              Passwords do not match
+            </div>
+          </div>
+          <button type="submit" class="auth-submit">Create Account</button>
+        </form>
+      </div>
+
+      <div class="auth-footer">
+        Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const pw  = document.getElementById('password');
+  const cfm = document.getElementById('confirm');
+  const hint = document.getElementById('match-hint');
+
+  function checkMatch() {
+    if (!cfm.value.length) { hint.style.display = 'none'; return; }
+    if (pw.value !== cfm.value) {
+      hint.style.display = 'block';
+      cfm.style.borderColor = 'rgba(255,40,40,0.4)';
+    } else {
+      hint.style.display = 'none';
+      cfm.style.borderColor = 'rgba(0,224,64,0.3)';
+    }
+  }
+  pw.addEventListener('input', checkMatch);
+  cfm.addEventListener('input', checkMatch);
+
+  document.getElementById('regForm').addEventListener('submit', e => {
+    if (pw.value !== cfm.value) {
+      e.preventDefault();
+      hint.style.display = 'block';
+      cfm.focus();
+    }
+  });
+</script>
+{% endblock %}

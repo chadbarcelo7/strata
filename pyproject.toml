@@ -1,0 +1,10 @@
+# pyproject.toml
+# Tells pip/setuptools that the project root is a package root.
+# Also used by pytest, black, etc.
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.backends.legacy:build"

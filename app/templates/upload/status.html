@@ -1,0 +1,3141 @@
+{% extends "base.html" %}
+{% block title %}Mixer — Strata{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ── Remap variables back to dark modern theme ───────────────────────── */
+  :root {
+    --bg:          #0a0a0a;
+    --surface:     #111111;
+    --surface2:    #1a1a1a;
+    --border:      rgba(255,255,255,0.07);
+    --border-hover:rgba(255,255,255,0.14);
+    --text:        #f0f0f0;
+    --muted:       #666;
+    --accent:      #ffffff;
+    --accent-soft: rgba(255,255,255,0.06);
+    --accent-glow: rgba(255,255,255,0.12);
+    --gold:        #e8b84a;
+    --radius:      10px;
+    --radius-lg:   14px;
+  }
+    --border:       #c49a6c;
+    --border-hover: #a07848;
+    --text:         #2d1e0f;
+    --muted:        #8b6340;
+    --accent:       #5a7a3a;
+    --accent-soft:  rgba(90,122,58,0.12);
+    --accent-glow:  rgba(90,122,58,0.3);
+    --gold:         #c8880a;
+    --radius:       4px;
+    --radius-lg:    6px;
+  }
+
+  /* ── Override all rounded cards → pixel-box style ───────────────────── */
+  .processing-card,
+  .error-card,
+  .master-bar,
+  .tuning-panel,
+  .export-panel {
+    border-radius: 0 !important;
+    border: 3px solid var(--earth) !important;
+    background: #f0e8cc !important;
+    box-shadow:
+      inset 2px 2px 0 var(--parchment2),
+      inset -2px -2px 0 var(--earth3),
+      4px 4px 0 var(--earth),
+      6px 6px 0 rgba(61,43,31,0.18) !important;
+  }
+
+  /* Analysis chips */
+  .analysis-chips > div {
+    border-radius: 0 !important;
+    border: 2px solid var(--border) !important;
+    background: #f0e8cc !important;
+    box-shadow: 2px 2px 0 rgba(61,43,31,0.2) !important;
+  }
+
+  /* Stem cards */
+  .stem-card {
+    border-radius: 0 !important;
+    border: 2px solid var(--earth) !important;
+    background: #f5ecd4 !important;
+    box-shadow: 2px 2px 0 rgba(61,43,31,0.2) !important;
+  }
+  .stem-card:hover {
+    border-color: var(--moss) !important;
+    box-shadow: 3px 3px 0 rgba(61,43,31,0.25) !important;
+  }
+
+  /* Stage pills → pixel tags */
+  .stage-pill {
+    border-radius: 0 !important;
+    border: 2px solid var(--border) !important;
+    font-family: 'Courier Prime', monospace !important;
+    font-size: 0.68rem !important;
+    background: #f0e8cc;
+  }
+  .stage-pill.active {
+    background: rgba(90,122,58,0.15) !important;
+    border-color: var(--moss) !important;
+    color: var(--moss) !important;
+  }
+  .stage-pill.done {
+    background: rgba(74,170,74,0.12) !important;
+    border-color: #4aaa4a !important;
+    color: #2a6a2a !important;
+  }
+
+  /* Progress bar → earthen brown fill */
+  .progress-bar-fill {
+    background: linear-gradient(90deg, var(--moss), var(--moss2)) !important;
+  }
+
+  /* Spl rows */
+  .spl-row {
+    border-radius: 0 !important;
+    border: 2px solid var(--border) !important;
+    background: #f0e8cc !important;
+  }
+  .spl-row.active { border-color: var(--moss) !important; }
+  .spl-row.done   { border-color: #4aaa4a !important; }
+
+  /* Play button → wood/green */
+  .master-play {
+    border-radius: 0 !important;
+    background: var(--moss) !important;
+    border: 2px solid var(--earth) !important;
+    box-shadow: 2px 2px 0 var(--earth2), 4px 4px 0 rgba(0,0,0,0.2) !important;
+  }
+  .master-play:hover {
+    background: var(--moss2) !important;
+    transform: translate(-1px,-1px) !important;
+    box-shadow: 3px 3px 0 var(--earth2), 5px 5px 0 rgba(0,0,0,0.2) !important;
+  }
+  .master-play:active {
+    transform: translate(2px,2px) !important;
+    box-shadow: none !important;
+  }
+
+  /* Timeline fill → golden harvest */
+  .timeline-fill {
+    background: var(--gold) !important;
+  }
+  .timeline {
+    border-radius: 0 !important;
+    background: var(--parchment2) !important;
+    border: 2px solid var(--border) !important;
+  }
+
+  /* Master vol slider — pixel style override */
+  .master-vol-slider {
+    border-radius: 0 !important;
+    border: 2px solid var(--earth) !important;
+    background: var(--parchment2) !important;
+    height: 8px !important;
+  }
+  .master-vol-slider::-webkit-slider-thumb {
+    border-radius: 0 !important;
+    background: var(--wood) !important;
+    border: 2px solid var(--earth) !important;
+    box-shadow: 2px 2px 0 var(--earth) !important;
+    width: 16px !important; height: 16px !important;
+  }
+  .master-vol-slider:hover::-webkit-slider-thumb { background: var(--gold) !important; }
+
+  /* Tuning sliders */
+  #pitch-slider, #tempo-slider,
+  .vol-slider {
+    border-radius: 0 !important;
+    border: 2px solid var(--earth) !important;
+    background: var(--parchment2) !important;
+    height: 8px !important;
+  }
+  #pitch-slider::-webkit-slider-thumb,
+  #tempo-slider::-webkit-slider-thumb,
+  .vol-slider::-webkit-slider-thumb {
+    border-radius: 0 !important;
+    background: var(--wood) !important;
+    border: 2px solid var(--earth) !important;
+    box-shadow: 2px 2px 0 var(--earth) !important;
+    width: 16px !important; height: 16px !important;
+  }
+  #pitch-slider::-webkit-slider-thumb { background: var(--cherry) !important; }
+  #tempo-slider::-webkit-slider-thumb { background: var(--sky) !important; }
+  .vol-slider::-webkit-slider-thumb { background: var(--wood) !important; }
+  .vol-slider:hover::-webkit-slider-thumb { background: var(--gold) !important; }
+
+  /* Mute/solo buttons → pixel style */
+  .mute-btn, .solo-btn {
+    border-radius: 0 !important;
+    font-family: 'Courier Prime', monospace !important;
+    font-size: 0.62rem !important;
+    font-weight: 700 !important;
+    border: 2px solid var(--border) !important;
+    box-shadow: 1px 1px 0 rgba(61,43,31,0.2) !important;
+  }
+  .mute-btn:active, .solo-btn:active {
+    transform: translate(1px,1px) !important;
+    box-shadow: none !important;
+  }
+  .mute-btn.muted {
+    background: rgba(192,53,42,0.18) !important;
+    border-color: var(--cherry) !important;
+    color: var(--cherry) !important;
+  }
+  .solo-btn.soloed {
+    background: rgba(232,184,74,0.2) !important;
+    border-color: var(--gold) !important;
+    color: #805a00 !important;
+  }
+
+  /* Quick-tap pitch/tempo buttons */
+  .quick-btn {
+    border-radius: 0 !important;
+    font-family: 'Courier Prime', monospace !important;
+    border: 2px solid var(--border) !important;
+    box-shadow: 1px 1px 0 rgba(61,43,31,0.15) !important;
+  }
+  .quick-btn:hover { border-color: var(--moss) !important; }
+
+  /* Export button */
+  .export-btn {
+    border-radius: 0 !important;
+    border: 2px solid var(--earth) !important;
+    font-family: 'Courier Prime', monospace !important;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+  }
+
+  /* Error card */
+  .error-card {
+    background: #fcd8d4 !important;
+    border-color: var(--cherry) !important;
+    box-shadow: 4px 4px 0 rgba(61,43,31,0.2) !important;
+  }
+  .error-card h2 { color: var(--cherry) !important; }
+
+  /* Fun message box */
+  .fun-msg {
+    border-radius: 0 !important;
+    border: 2px solid var(--border) !important;
+    background: #f0e8cc !important;
+    font-family: 'Courier Prime', monospace !important;
+  }
+
+  /* Mixer title typography */
+  .mixer-title h2 {
+    font-family: 'Courier Prime', monospace !important;
+    letter-spacing: 0.02em;
+    color: var(--earth) !important;
+    text-shadow: 2px 2px 0 rgba(61,43,31,0.1);
+  }
+
+  /* Track pill */
+  .track-pill {
+    border-radius: 0 !important;
+    border: 2px solid var(--border) !important;
+    background: #f0e8cc !important;
+    font-family: 'Courier Prime', monospace !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* ── Modern dark overrides — clean all stardew remnants ─────────────── */
+  * { font-family: 'DM Sans', sans-serif !important; }
+  .mono, .master-time, .master-vol-pct, .chip-label,
+  .tuning-value, .fun-msg { font-family: 'DM Mono', monospace !important; }
+
+  body {
+    background: #0a0a0a !important;
+    color: #f0f0f0 !important;
+  }
+
+  .processing-card, .error-card, .master-bar,
+  .tuning-panel, .export-panel, .stem-card,
+  .analysis-chips > div {
+    border-radius: 14px !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    background: #111111 !important;
+    box-shadow: none !important;
+  }
+
+  .stem-card:hover {
+    border-color: rgba(255,255,255,0.14) !important;
+    background: #161616 !important;
+  }
+
+  .stage-pill {
+    border-radius: 100px !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    font-family: 'DM Mono', monospace !important;
+    font-size: 0.68rem !important;
+    background: rgba(255,255,255,0.02) !important;
+    color: #666 !important;
+  }
+  .stage-pill.active {
+    background: rgba(255,255,255,0.08) !important;
+    border-color: rgba(255,255,255,0.2) !important;
+    color: #f0f0f0 !important;
+  }
+  .stage-pill.done {
+    background: rgba(74,222,128,0.08) !important;
+    border-color: rgba(74,222,128,0.3) !important;
+    color: #4ade80 !important;
+  }
+
+  .progress-bar-fill {
+    background: linear-gradient(90deg, #fff, #aaa) !important;
+    border-radius: 100px !important;
+  }
+
+  .spl-row {
+    border-radius: 10px !important;
+    border: 1px solid rgba(255,255,255,0.06) !important;
+    background: rgba(255,255,255,0.02) !important;
+  }
+  .spl-row.active { border-color: rgba(255,255,255,0.15) !important; }
+  .spl-row.done   { border-color: rgba(74,222,128,0.25) !important; }
+  .spl-row.active .spl-bar-fill { background: #fff !important; }
+  .spl-row.done   .spl-bar-fill { background: #4ade80 !important; }
+
+  .master-play {
+    border-radius: 50% !important;
+    background: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 2px 12px rgba(255,255,255,0.15) !important;
+    color: #000 !important;
+  }
+  .master-play:hover {
+    background: #e0e0e0 !important;
+    transform: scale(1.06) !important;
+    box-shadow: 0 4px 20px rgba(255,255,255,0.2) !important;
+  }
+  .master-play:active { transform: scale(0.96) !important; }
+
+  .timeline-fill {
+    background: #ffffff !important;
+    border-radius: 100px !important;
+  }
+  .timeline {
+    border-radius: 100px !important;
+    background: rgba(255,255,255,0.08) !important;
+    border: none !important;
+  }
+
+  /* Sliders — thin & modern */
+  .master-vol-slider,
+  #pitch-slider, #tempo-slider, .vol-slider {
+    border-radius: 100px !important;
+    border: none !important;
+    background: rgba(255,255,255,0.1) !important;
+    height: 4px !important;
+  }
+  .master-vol-slider::-webkit-slider-thumb,
+  #pitch-slider::-webkit-slider-thumb,
+  #tempo-slider::-webkit-slider-thumb,
+  .vol-slider::-webkit-slider-thumb {
+    border-radius: 50% !important;
+    background: #fff !important;
+    border: 2px solid #0a0a0a !important;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.6) !important;
+    width: 14px !important; height: 14px !important;
+  }
+  #pitch-slider::-webkit-slider-thumb  { background: #a78bfa !important; border-color: #0a0a0a !important; }
+  #tempo-slider::-webkit-slider-thumb  { background: #60a5fa !important; border-color: #0a0a0a !important; }
+  .vol-slider:hover::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(255,255,255,0.15) !important; }
+
+  /* Mute/solo */
+  .mute-btn, .solo-btn {
+    border-radius: 7px !important;
+    font-family: 'DM Mono', monospace !important;
+    font-size: 0.62rem !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    box-shadow: none !important;
+  }
+  .mute-btn.muted  { background: rgba(248,113,113,0.1) !important; border-color: rgba(248,113,113,0.35) !important; color: #f87171 !important; }
+  .solo-btn.soloed { background: rgba(234,179,8,0.1)  !important; border-color: rgba(234,179,8,0.35)  !important; color: #eab308  !important; }
+
+  .quick-btn {
+    border-radius: 7px !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    box-shadow: none !important;
+  }
+  .quick-btn:hover { border-color: rgba(255,255,255,0.2) !important; background: rgba(255,255,255,0.05) !important; }
+
+  .semitone-key.active, .bpm-preset.active {
+    background: rgba(255,255,255,0.1) !important;
+    border-color: rgba(255,255,255,0.3) !important;
+    color: #fff !important;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.15) inset !important;
+  }
+
+  .export-btn {
+    border-radius: var(--radius) !important;
+    border: none !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em !important;
+    text-transform: none !important;
+    background: #fff !important; color: #000 !important;
+    transition: all 0.18s !important;
+  }
+  .export-btn:hover { background: #e0e0e0 !important; transform: translateY(-1px) !important; }
+
+  .error-card {
+    background: rgba(248,113,113,0.05) !important;
+    border-color: rgba(248,113,113,0.2) !important;
+  }
+  .error-card h2 { color: #f87171 !important; }
+
+  .fun-msg {
+    border-radius: 10px !important;
+    border: 1px solid rgba(255,255,255,0.06) !important;
+    background: rgba(255,255,255,0.02) !important;
+  }
+
+  .track-pill {
+    border-radius: 100px !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    background: rgba(255,255,255,0.04) !important;
+    font-size: 0.8rem !important;
+  }
+
+  .chip-value.bpm { color: #a78bfa !important; }
+  .chip-value.key { color: #60a5fa !important; }
+
+  .status-page {
+    max-width: 800px; margin: 0 auto;
+    padding: 5rem 1.5rem 4rem;
+  }
+
+
+  /* ── PROCESSING CARD ──────────────────────────────────────────────────── */
+  .processing-card {
+    background: var(--parchment);
+    border: 3px solid var(--earth);
+    box-shadow:
+      inset 2px 2px 0 var(--parchment2),
+      inset -2px -2px 0 var(--earth3),
+      4px 4px 0 var(--earth),
+      7px 7px 0 rgba(61,43,31,0.15);
+    padding: 3rem 2.5rem;
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .processing-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent 0px, transparent 8px,
+      rgba(196,154,108,0.06) 8px, rgba(196,154,108,0.06) 9px
+    );
+    pointer-events: none;
+  }
+  .processing-emoji {
+    font-size: 3rem; display: block;
+    margin-bottom: 1rem;
+    animation: bounce 1.4s ease-in-out infinite;
+  }
+  @keyframes bounce {
+    0%,100% { transform: translateY(0);    }
+    40%      { transform: translateY(-10px);}
+    60%      { transform: translateY(-5px); }
+  }
+  .processing-card h2 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.75rem; letter-spacing: -0.02em; margin-bottom: 0.35rem;
+  }
+  .track-pill {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.4rem 0.9rem;
+    font-size: 0.8rem; font-weight: 500;
+    margin: 0.6rem 0 1.5rem; max-width: 100%;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .progress-section { margin: 0.5rem 0 1.75rem; text-align: left; }
+  .progress-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 0.6rem;
+  }
+  .progress-pct {
+    font-size: 1.6rem; font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text); line-height: 1;
+  }
+  .progress-pct span { font-size: 0.85rem; font-weight: 400; color: var(--muted); }
+  .progress-eta { font-size: 0.75rem; color: var(--muted); text-align: right; }
+  .progress-track {
+    height: 10px; border-radius: 100px;
+    background: var(--surface2); border: 1px solid var(--border);
+    overflow: hidden; position: relative;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 100px;
+    background: linear-gradient(90deg, var(--accent), #ff6b35);
+    width: 0%; transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute; top:0; right:0; bottom:0; width:60px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 1.5s linear infinite;
+  }
+  @keyframes shimmer { from{transform:translateX(-60px)} to{transform:translateX(60px)} }
+  .stage-pills { display:flex; gap:0.4rem; margin-top:0.75rem; flex-wrap:wrap; }
+  .stage-pill {
+    font-size:0.68rem; font-weight:600;
+    padding:0.2rem 0.6rem; border-radius:100px;
+    border:1px solid var(--border); color:var(--muted); background:transparent;
+    transition:all 0.4s; display:flex; align-items:center; gap:0.3rem;
+  }
+  .stage-pill.active { background:var(--accent-soft); border-color:rgba(192,21,42,0.4); color:#ff6b6b; }
+  .stage-pill.done   { background:rgba(52,199,89,0.1); border-color:rgba(52,199,89,0.35); color:#34c759; }
+  .stage-pill .pill-dot { width:5px; height:5px; border-radius:50%; background:currentColor; }
+  .stage-pill.active .pill-dot { animation:pulse-dot 1s ease-in-out infinite; }
+  @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .funny-label {
+    min-height:44px; display:flex; align-items:center; justify-content:center;
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:var(--radius); padding:0.6rem 1.2rem;
+    font-size:0.85rem; color:var(--muted); font-style:italic;
+    margin-bottom:1.5rem; transition:opacity 0.4s; position:relative;
+  }
+  .funny-label::before { content:'💬'; margin-right:0.5rem; font-style:normal; }
+  .funny-label.fade { opacity:0; }
+  .stem-progress-list { display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1.5rem; text-align:left; }
+  .spl-row {
+    display:flex; align-items:center; gap:0.75rem;
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:var(--radius); padding:0.65rem 1rem; transition:border-color 0.3s;
+  }
+  .spl-row.active { border-color:rgba(192,21,42,0.35); }
+  .spl-row.done   { border-color:rgba(52,199,89,0.3); }
+  .spl-emoji { font-size:1.1rem; flex-shrink:0; width:24px; text-align:center; }
+  .spl-name  { font-size:0.82rem; font-weight:500; flex:1; }
+  .spl-status{ font-size:0.7rem; color:var(--muted); }
+  .spl-row.active .spl-status { color:#ff9f0a; }
+  .spl-row.done   .spl-status { color:#34c759; }
+  .spl-bar-wrap { width:80px; height:4px; border-radius:100px; background:var(--surface); overflow:hidden; }
+  .spl-bar-fill { height:100%; border-radius:100px; width:0%; transition:width 1s ease; }
+  .spl-row.active .spl-bar-fill { background:var(--accent); }
+  .spl-row.done   .spl-bar-fill { background:#34c759; }
+
+  /* ── ERROR ────────────────────────────────────────────────────────────── */
+  .error-card {
+    background:rgba(255,59,48,0.05); border:1px solid rgba(255,59,48,0.2);
+    border-radius:var(--radius-lg); padding:2.5rem 2rem; text-align:center;
+  }
+  .error-icon { font-size:2.5rem; margin-bottom:0.75rem; }
+  .error-card h2 { color:#ff3b30; font-size:1.3rem; margin-bottom:0.4rem; }
+  .error-msg {
+    background:rgba(0,0,0,0.3); border-radius:10px; padding:1rem;
+    font-size:0.75rem; color:var(--muted); font-family:monospace;
+    text-align:left; margin:1rem 0; max-height:130px; overflow-y:auto;
+    white-space:pre-wrap; word-break:break-all;
+  }
+
+  /* ── MIXER HEADER ─────────────────────────────────────────────────────── */
+  .mixer-header {
+    display:flex; align-items:flex-start; justify-content:space-between;
+    margin-bottom:1.5rem; gap:1rem; flex-wrap:wrap;
+  }
+  .mixer-title h2 {
+    font-family:'Instrument Serif',serif;
+    font-size:2rem; letter-spacing:-0.03em; margin-bottom:0.2rem;
+  }
+  .mixer-title h2 em { font-style:italic; color:var(--gold); }
+  .mixer-title p { color:var(--muted); font-size:0.82rem; }
+
+  /* ── ANALYSIS CHIPS ───────────────────────────────────────────────────── */
+  .analysis-row { display:flex; gap:0.75rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+  .analysis-chip {
+    display:flex; align-items:center; gap:0.5rem;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; padding:0.6rem 1rem; min-width:100px;
+  }
+  .chip-icon { font-size:1rem; }
+  .chip-label { font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
+  .chip-value { font-size:1rem; font-weight:600; color:var(--text); line-height:1.2; }
+  .chip-value.bpm { color:var(--accent); }
+  .chip-value.key { color:var(--gold); }
+
+  /* ── MASTER CONTROLS ──────────────────────────────────────────────────── */
+  .master-bar {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius-lg); padding:1.1rem 1.4rem;
+    display:flex; align-items:center; gap:1rem; margin-bottom:1rem;
+  }
+  .master-play {
+    width:46px; height:46px; border-radius:50%;
+    background:var(--accent); border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1rem; flex-shrink:0; color:#000;
+    transition:all 0.2s; box-shadow:0 4px 16px var(--accent-glow);
+  }
+  .master-play:hover { transform:scale(1.06); }
+  .master-info { flex:1; min-width:0; }
+  .master-name { font-size:0.88rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .master-sub  { font-size:0.72rem; color:var(--muted); margin-top:0.1rem; }
+  .timeline {
+    height:4px; background:var(--surface2); border-radius:100px;
+    cursor:pointer; margin-top:0.6rem; position:relative; overflow:hidden;
+  }
+  .timeline-fill {
+    height:100%; background:var(--accent); width:0%;
+    border-radius:100px; transition:width 0.1s linear; pointer-events:none;
+  }
+  .master-time { font-size:0.75rem; color:var(--muted); font-variant-numeric:tabular-nums; flex-shrink:0; font-family:'DM Mono',monospace; }
+  .master-vol-wrap { display:flex; align-items:center; gap:0.5rem; margin-top:0.55rem; }
+
+  /* Master volume — now lives inside master-info, below the timeline */
+
+  /* ── CHORD DETECTION PANEL ───────────────────────────────────────────── */
+  .chord-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+  .chord-panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.4rem; cursor: pointer; user-select: none;
+    transition: background 0.15s;
+  }
+  .chord-panel-header:hover { background: rgba(255,255,255,0.02); }
+  .chord-panel-title {
+    display: flex; align-items: center; gap: 0.65rem;
+    font-size: 0.78rem; font-weight: 600;
+    color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .chord-badge {
+    font-size: 0.6rem; font-weight: 700;
+    padding: 0.15rem 0.45rem; border-radius: 100px;
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    color: #fff; letter-spacing: 0.05em;
+  }
+  .chord-chevron { font-size: 0.7rem; color: var(--text3); transition: transform 0.25s; }
+  .chord-panel.open .chord-chevron { transform: rotate(180deg); }
+  .chord-panel-body {
+    display: none; padding: 0 1.4rem 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+  .chord-panel.open .chord-panel-body { display: block; }
+
+  .chord-detect-btn {
+    width: 100%; margin-top: 1rem; padding: 0.75rem;
+    background: transparent;
+    border: 1px solid rgba(245,158,11,0.3);
+    border-radius: var(--r); color: #f59e0b;
+    font-size: 0.85rem; font-weight: 500;
+    cursor: pointer; display: flex;
+    align-items: center; justify-content: center; gap: 0.5rem;
+    transition: all 0.18s; font-family: 'DM Sans', sans-serif;
+  }
+  .chord-detect-btn:hover {
+    background: rgba(245,158,11,0.08);
+    border-color: rgba(245,158,11,0.5);
+    box-shadow: 0 0 20px rgba(245,158,11,0.1);
+  }
+  .chord-detect-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .chord-detect-btn.loading {
+    animation: chord-pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes chord-pop {
+    from { transform: scale(0.85); opacity: 0.5; }
+    to   { transform: scale(1);    opacity: 1; }
+  }
+
+  /* Chord output */
+  .chord-output { display: none; margin-top: 1rem; }
+  .chord-output.visible { display: block; }
+
+  .chord-key-row {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin-bottom: 1rem; flex-wrap: wrap;
+  }
+  .chord-key-chip {
+    font-size: 0.8rem; font-weight: 600;
+    padding: 0.3rem 0.8rem; border-radius: 100px;
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.3);
+    color: #f59e0b; font-family: 'DM Mono', monospace;
+  }
+  .chord-scale-chip {
+    font-size: 0.72rem; color: var(--text3);
+    padding: 0.25rem 0.65rem; border-radius: 100px;
+    border: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+  }
+  .chord-desc {
+    font-size: 0.78rem; color: var(--text2);
+    line-height: 1.6; margin-bottom: 1rem;
+  }
+
+  /* Chord progression grid */
+  .chord-progression {
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .chord-block {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0.2rem;
+    animation: fade-up 0.3s ease both;
+  }
+  .chord-name {
+    font-size: 0.95rem; font-weight: 700;
+    padding: 0.55rem 0.85rem;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    min-width: 52px; text-align: center;
+    transition: all 0.15s;
+  }
+  .chord-name:hover {
+    background: rgba(245,158,11,0.1);
+    border-color: rgba(245,158,11,0.3);
+    color: #f59e0b;
+  }
+  .chord-name.tonic {
+    background: rgba(245,158,11,0.12);
+    border-color: rgba(245,158,11,0.4);
+    color: #f59e0b;
+  }
+  .chord-function {
+    font-size: 0.58rem; color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+
+  /* Roman numeral analysis */
+  .chord-roman-row {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+    margin-bottom: 0.85rem; align-items: center;
+  }
+  .chord-roman-label {
+    font-size: 0.68rem; color: var(--text3);
+    font-family: 'DM Mono', monospace; flex-shrink: 0;
+  }
+  .chord-roman {
+    font-size: 0.72rem; font-weight: 600;
+    padding: 0.2rem 0.5rem; border-radius: 6px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--text2); font-family: 'DM Mono', monospace;
+  }
+
+  .chord-suggestions {
+    font-size: 0.75rem; color: var(--text2);
+    line-height: 1.65; padding: 0.75rem;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+  }
+  .chord-error {
+    font-size: 0.78rem; color: #f87171;
+    padding: 0.65rem 0.85rem;
+    background: rgba(248,113,113,0.07);
+    border: 1px solid rgba(248,113,113,0.2);
+    border-radius: 8px; margin-top: 0.75rem;
+  }
+
+  /* ── PITCH & TEMPO PANEL ──────────────────────────────────────────────── */
+  .tuning-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.4rem;
+    margin-bottom: 1rem;
+  }
+  .tuning-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.1rem;
+  }
+  .tuning-title {
+    font-size: 0.78rem; font-weight: 600;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .tuning-title-icon { font-size: 0.9rem; }
+  .tuning-reset {
+    font-size: 0.72rem; font-weight: 500;
+    color: var(--muted); background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 0.25rem 0.65rem; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tuning-reset:hover { color: var(--text); border-color: var(--border-hover); }
+
+  .tuning-rows { display: flex; flex-direction: column; gap: 1rem; }
+
+  .tuning-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 60px;
+    align-items: center; gap: 1rem;
+  }
+  .tuning-label-wrap {}
+  .tuning-label {
+    font-size: 0.82rem; font-weight: 600; display: block;
+    color: var(--text);
+  }
+  .tuning-sublabel {
+    font-size: 0.68rem; color: var(--muted); margin-top: 0.1rem; display: block;
+  }
+
+  /* Custom styled range for tuning */
+  .tuning-slider {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 5px;
+    border-radius: 100px; outline: none; cursor: pointer;
+    background: var(--surface2);
+    position: relative;
+  }
+  .tuning-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px; border-radius: 50%;
+    cursor: pointer; border: 2px solid var(--bg);
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  .tuning-slider:hover::-webkit-slider-thumb { transform: scale(1.2); }
+  /* Pitch slider — crimson thumb */
+  #pitch-slider::-webkit-slider-thumb { background: var(--accent); }
+  #pitch-slider:focus { outline: none; }
+  /* Tempo slider — gold thumb */
+  #tempo-slider::-webkit-slider-thumb { background: var(--gold); }
+
+  .tuning-value-wrap {
+    display: flex; flex-direction: column; align-items: flex-end;
+  }
+  .tuning-value {
+    font-size: 1.1rem; font-weight: 700;
+    font-variant-numeric: tabular-nums; line-height: 1;
+  }
+  .tuning-value.pitch-val { color: var(--accent); }
+  .tuning-value.tempo-val { color: var(--gold); }
+  .tuning-unit { font-size: 0.65rem; color: var(--muted); margin-top: 0.1rem; }
+
+  /* Semitone key selector */
+  .semitone-keys {
+    display: flex; gap: 0.25rem; margin-top: 0.5rem;
+    flex-wrap: wrap; grid-column: 1 / -1;
+  }
+  .semitone-key {
+    font-size: 0.68rem; font-weight: 600;
+    padding: 0.2rem 0.5rem; border-radius: 5px;
+    border: 1px solid var(--border);
+    background: transparent; color: var(--muted);
+    cursor: pointer; transition: all 0.15s;
+    font-family: 'Outfit', sans-serif;
+  }
+  .semitone-key:hover { border-color: var(--border-hover); color: var(--text); }
+  .semitone-key.active {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.35);
+    color: #fff;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.2) inset;
+  }
+
+  /* BPM preset buttons */
+  .bpm-presets {
+    display: flex; gap: 0.25rem; margin-top: 0.5rem;
+    flex-wrap: wrap; grid-column: 1 / -1;
+  }
+  .bpm-preset {
+    font-size: 0.68rem; font-weight: 600;
+    padding: 0.2rem 0.55rem; border-radius: 5px;
+    border: 1px solid var(--border);
+    background: transparent; color: var(--muted);
+    cursor: pointer; transition: all 0.15s;
+    font-family: 'Outfit', sans-serif;
+  }
+  .bpm-preset:hover { border-color: var(--border-hover); color: var(--text); }
+  .bpm-preset.active {
+    background: var(--gold); border-color: var(--gold);
+    color: var(--bg); box-shadow: 0 2px 8px rgba(184,146,106,0.3);
+  }
+
+  /* ── STEM ROWS ────────────────────────────────────────────────────────── */
+  .mixer-grid { display:flex; flex-direction:column; gap:0.6rem; margin-bottom:1.25rem; }
+  .stem-row {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:0.75rem 1.1rem 0.6rem;
+    display:flex; flex-direction:column; gap:0.5rem;
+    transition:border-color 0.2s, opacity 0.2s;
+  }
+  .stem-row-top {
+    display:flex; align-items:center; gap:0.85rem;
+  }
+  .stem-row:hover  { border-color:var(--border-hover); }
+  .stem-row.muted  { opacity:0.4; }
+  .stem-row.soloing { border-color:var(--stem-color); box-shadow:0 0 0 1px var(--stem-color) inset; }
+  .stem-emoji { font-size:1.2rem; flex-shrink:0; width:26px; text-align:center; }
+  /* ── REVERB STRIP ──────────────────────────────────────────────────────── */
+  .stem-reverb-strip {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0 2px;
+  }
+  .stem-reverb-label {
+    font-size: 0.58rem; color: var(--text3); flex-shrink: 0;
+    font-family: 'DM Mono', monospace; text-transform: uppercase;
+    letter-spacing: 0.06em; width: 22px;
+  }
+  .stem-reverb-track {
+    flex: 1; height: 4px; border-radius: 100px;
+    background: rgba(255,255,255,0.06);
+    position: relative; cursor: pointer;
+  }
+  .stem-reverb-fill {
+    height: 100%; border-radius: 100px; width: 0%;
+    background: linear-gradient(90deg, #7c3aed, #a78bfa);
+    transition: width 0.05s;
+    pointer-events: none;
+  }
+  .reverb-slider {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; cursor: pointer; margin: 0; padding: 0;
+    -webkit-appearance: none; appearance: none;
+  }
+  .stem-reverb-val {
+    font-size: 0.6rem; color: var(--text3); flex-shrink: 0;
+    font-family: 'DM Mono', monospace; width: 24px; text-align: right;
+  }
+  .stem-play {
+    width:34px; height:34px; border-radius:50%;
+    border:1.5px solid var(--stem-color); background:transparent;
+    cursor:pointer; color:var(--stem-color);
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.7rem; flex-shrink:0; transition:all 0.2s;
+  }
+  .stem-play:hover { background:color-mix(in srgb,var(--stem-color) 15%,transparent); transform:scale(1.08); }
+  .stem-play.active { background:var(--stem-color); color:#fff; }
+  .stem-meta { width:90px; flex-shrink:0; }
+  .stem-name { font-size:0.82rem; font-weight:600; }
+  .stem-file { font-size:0.65rem; color:var(--muted); margin-top:0.1rem; }
+  /* ── WAVEFORM CANVAS ─────────────────────────────────────────────────── */
+  .stem-viz {
+    flex: 1; height: 36px;
+    position: relative; overflow: hidden;
+    cursor: pointer;
+  }
+  .stem-waveform {
+    width: 100%; height: 100%;
+    display: block; border-radius: 4px;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+  }
+  .stem-row:hover .stem-waveform,
+  .stem-row.soloing .stem-waveform { opacity: 1; }
+
+  /* Playhead overlay on waveform */
+  .stem-playhead {
+    position: absolute; top: 0; left: 0;
+    width: 2px; height: 100%;
+    background: rgba(255,255,255,0.7);
+    pointer-events: none;
+    display: none;
+    border-radius: 1px;
+  }
+  .stem-row.soloing .stem-playhead { display: block; }
+
+  /* Waveform loading shimmer */
+  .stem-waveform-loading {
+    position: absolute; inset: 0;
+    border-radius: 4px;
+    background: linear-gradient(90deg,
+      rgba(255,255,255,0.03) 0%,
+      rgba(255,255,255,0.07) 50%,
+      rgba(255,255,255,0.03) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+  /* mobile reverb strip stays visible but compact */
+  .vol-wrap { display:flex; align-items:center; gap:0.4rem; width:110px; flex-shrink:0; }
+  .vol-icon { font-size:0.8rem; color:var(--muted); flex-shrink:0; width:16px; text-align:center; }
+  .vol-slider {
+    -webkit-appearance:none; appearance:none;
+    flex:1; height:3px; background:var(--surface2);
+    border-radius:100px; outline:none; cursor:pointer;
+  }
+  .vol-slider::-webkit-slider-thumb {
+    -webkit-appearance:none; width:13px; height:13px;
+    border-radius:50%; background:var(--text); cursor:pointer;
+    border:2px solid var(--bg); transition:transform 0.15s;
+  }
+  .vol-slider:hover::-webkit-slider-thumb { transform:scale(1.25); }
+  .mute-btn {
+    width:28px; height:28px; border-radius:50%;
+    border:1px solid var(--border); background:transparent;
+    cursor:pointer; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.7rem; color:var(--muted); transition:all 0.2s;
+  }
+  .mute-btn:hover { border-color:var(--border-hover); color:var(--text); }
+  .mute-btn.muted { background:rgba(255,59,48,0.15); border-color:rgba(255,59,48,0.4); color:#ff3b30; }
+  .stem-dl {
+    width:28px; height:28px; border-radius:50%;
+    border:1px solid var(--border); background:transparent;
+    cursor:pointer; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.7rem; color:var(--muted); text-decoration:none; transition:all 0.2s;
+  }
+  .stem-dl:hover { border-color:var(--stem-color); color:var(--stem-color); }
+
+  /* ── DOWNLOAD FOOTER ──────────────────────────────────────────────────── */
+  .dl-footer {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius-lg); padding:1.25rem 1.5rem;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:1rem; flex-wrap:wrap;
+  }
+  .dl-info { display:flex; align-items:center; gap:0.85rem; }
+  .dl-icon {
+    width:42px; height:42px; border-radius:12px;
+    background:var(--accent-soft); border:1px solid rgba(192,21,42,0.22);
+    display:flex; align-items:center; justify-content:center; font-size:1.1rem;
+  }
+  .dl-label { font-size:0.88rem; font-weight:600; }
+  .dl-sub   { font-size:0.72rem; color:var(--muted); margin-top:0.1rem; }
+
+  @media (max-width:580px) {
+    .stem-viz { min-width: 60px; }
+    /* reverb strip visible on mobile */
+    .vol-wrap { width:80px; }
+    .tuning-row { grid-template-columns: 90px 1fr 55px; }
+    .semitone-keys, .bpm-presets { display: none; }
+    .export-formats { grid-template-columns: 1fr; }
+  }
+
+  /* ── EXPORT PANEL ────────────────────────────────────────────────────── */
+  .export-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.4rem 1.5rem;
+    margin-top: 0.75rem;
+  }
+  .export-header { margin-bottom: 1.1rem; }
+  .export-title {
+    font-size: 0.78rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted); display: flex; align-items: center; gap: 0.4rem;
+    margin-bottom: 0.2rem;
+  }
+  .export-subtitle { font-size: 0.75rem; color: var(--muted); }
+
+  .export-formats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  .fmt-btn {
+    background: var(--surface2); border: 1.5px solid var(--border);
+    border-radius: var(--radius); padding: 0.8rem 1rem;
+    cursor: pointer; text-align: left; transition: all 0.2s;
+    display: flex; flex-direction: column; gap: 0.15rem;
+  }
+  .fmt-btn:hover { border-color: var(--border-hover); }
+  .fmt-btn.active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    box-shadow: 0 0 0 1px var(--accent) inset;
+  }
+  .fmt-icon   { font-size: 1.1rem; margin-bottom: 0.2rem; }
+  .fmt-name   { font-size: 0.82rem; font-weight: 700; color: var(--text); }
+  .fmt-detail { font-size: 0.65rem; color: var(--muted); }
+  .fmt-btn.active .fmt-name { color: #ff8090; }
+
+  .export-info-row {
+    display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;
+  }
+  .export-info-chip {
+    font-size: 0.72rem; font-weight: 500; color: var(--muted);
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 0.25rem 0.6rem;
+    display: flex; align-items: center; gap: 0.3rem;
+  }
+  .export-actions {
+    display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;
+  }
+  .btn-export {
+    background: linear-gradient(135deg, var(--accent), #c0380a);
+    color: #fff; border: none; border-radius: var(--radius);
+    padding: 0.7rem 1.4rem; font-size: 0.88rem; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 0.5rem;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(192,21,42,0.3);
+  }
+  .btn-export:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(192,21,42,0.4); }
+  .btn-export:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+  .btn-export-icon { display: inline-block; }
+  .btn-export.rendering .btn-export-icon { animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .export-prog-wrap {
+    height: 4px; border-radius: 100px; background: var(--surface2);
+    margin-top: 1rem; overflow: hidden; display: none;
+  }
+  .export-prog-bar {
+    height: 100%; border-radius: 100px;
+    background: linear-gradient(90deg, var(--accent), #ff6b35);
+    width: 0%; transition: width 0.5s ease;
+    position: relative;
+  }
+  .export-prog-bar::after {
+    content: '';
+    position: absolute; top:0; right:0; bottom:0; width:40px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+    animation: shimmer 1.2s linear infinite;
+  }
+  .export-status {
+    font-size: 0.75rem; color: var(--muted);
+    margin-top: 0.5rem; min-height: 1rem;
+  }
+  .export-status.ok  { color: #34c759; }
+  .export-status.err { color: #ff3b30; }
+  /* ── FLOATING MINI-PLAYER ────────────────────────────────────────────── */
+  .master-bar {
+    transition: box-shadow 0.25s;
+  }
+
+  .player-sentinel { height: 1px; pointer-events: none; }
+
+  /* The floating widget — compact pill on the left */
+  #mini-player {
+    display: none;
+    position: fixed;
+    left: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 500;
+    width: 260px;
+    background: rgba(14,14,14,0.96);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 16px;
+    box-shadow:
+      0 12px 48px rgba(0,0,0,0.75),
+      0 2px 8px rgba(0,0,0,0.5),
+      0 0 0 1px rgba(255,255,255,0.05) inset;
+    overflow: hidden;
+    animation: mini-pop 0.28s cubic-bezier(0.34,1.56,0.64,1);
+    user-select: none;
+  }
+  #mini-player.visible { display: block; }
+
+  @keyframes mini-pop {
+    from { opacity: 0; transform: translateY(12px) scale(0.95); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);    }
+  }
+
+  /* Drag handle strip at top */
+  .mini-drag-handle {
+    height: 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 0.75rem;
+    cursor: grab;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .mini-drag-handle:active { cursor: grabbing; }
+  .mini-drag-dots {
+    display: flex; gap: 3px; align-items: center;
+  }
+  .mini-drag-dots span {
+    width: 3px; height: 3px; border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+  }
+  .mini-drag-label {
+    font-size: 0.6rem; color: rgba(255,255,255,0.25);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+  }
+  .mini-close {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: none; cursor: pointer; color: rgba(255,255,255,0.4);
+    font-size: 0.55rem; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; padding: 0; line-height: 1;
+  }
+  .mini-close:hover { background: rgba(248,113,113,0.4); color: #fff; }
+
+  /* Mini player body */
+  .mini-body {
+    padding: 0.65rem 0.75rem 0.75rem;
+  }
+
+  .mini-track-name {
+    font-size: 0.72rem; font-weight: 600; color: #f0f0f0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 0.55rem;
+  }
+
+  /* Compact controls row */
+  .mini-controls {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-bottom: 0.55rem;
+  }
+  .mini-play {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #fff; color: #000;
+    border: none; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem;
+    transition: all 0.15s;
+    box-shadow: 0 2px 10px rgba(255,255,255,0.2);
+  }
+  .mini-play:hover { background: #ddd; transform: scale(1.08); }
+  .mini-play:active { transform: scale(0.94); }
+
+  .mini-timeline-wrap { flex: 1; }
+  .mini-timeline {
+    height: 3px; background: rgba(255,255,255,0.1);
+    border-radius: 100px; cursor: pointer; position: relative; overflow: hidden;
+  }
+  .mini-timeline-fill {
+    height: 100%; width: 0%; background: #fff;
+    border-radius: 100px; transition: width 0.1s linear; pointer-events: none;
+  }
+  .mini-time {
+    font-size: 0.6rem; color: rgba(255,255,255,0.3);
+    font-family: 'DM Mono', monospace;
+    margin-top: 0.3rem; text-align: right;
+  }
+
+  /* Mini volume row */
+  .mini-vol-row {
+    display: flex; align-items: center; gap: 0.45rem;
+  }
+  .mini-vol-icon {
+    font-size: 0.7rem; cursor: pointer; flex-shrink: 0;
+    opacity: 0.5; transition: opacity 0.15s;
+  }
+  .mini-vol-icon:hover { opacity: 1; }
+  .mini-vol-slider {
+    flex: 1; -webkit-appearance: none; appearance: none;
+    height: 3px; border-radius: 100px;
+    background: rgba(255,255,255,0.1); outline: none; cursor: pointer;
+    border: none;
+  }
+  .mini-vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #fff; border: none; cursor: pointer;
+  }
+
+  /* Placeholder holds space when player is docked */
+  .master-bar-placeholder { display: none; height: 0; }
+  .master-bar-placeholder.active { display: block; }
+
+  /* ── AI ANALYSIS PANEL ───────────────────────────────────────────────── */
+  .ai-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+
+  .ai-panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.4rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .ai-panel-header:hover { background: rgba(255,255,255,0.02); }
+
+  .ai-panel-title {
+    display: flex; align-items: center; gap: 0.65rem;
+    font-size: 0.78rem; font-weight: 600;
+    color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .ai-badge {
+    font-size: 0.6rem; font-weight: 700;
+    padding: 0.15rem 0.45rem;
+    border-radius: 100px;
+    background: linear-gradient(135deg, #a78bfa, #60a5fa);
+    color: #fff; letter-spacing: 0.05em;
+  }
+
+  .ai-panel-chevron {
+    font-size: 0.7rem; color: var(--text3);
+    transition: transform 0.25s;
+  }
+  .ai-panel.open .ai-panel-chevron { transform: rotate(180deg); }
+
+  .ai-panel-body {
+    display: none;
+    padding: 0 1.4rem 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+  .ai-panel.open .ai-panel-body { display: block; }
+
+  /* Analyze button */
+  .ai-analyze-btn {
+    width: 100%; margin-top: 1rem;
+    padding: 0.75rem;
+    background: transparent;
+    border: 1px solid rgba(167,139,250,0.3);
+    border-radius: var(--r);
+    color: #a78bfa;
+    font-size: 0.85rem; font-weight: 500;
+    cursor: pointer; display: flex;
+    align-items: center; justify-content: center; gap: 0.5rem;
+    transition: all 0.18s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .ai-analyze-btn:hover {
+    background: rgba(167,139,250,0.08);
+    border-color: rgba(167,139,250,0.5);
+    box-shadow: 0 0 20px rgba(167,139,250,0.12);
+  }
+  .ai-analyze-btn:disabled {
+    opacity: 0.4; cursor: not-allowed;
+  }
+  .ai-analyze-btn.loading {
+    animation: ai-pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes ai-pulse {
+    0%,100% { border-color: rgba(167,139,250,0.3); box-shadow: none; }
+    50%      { border-color: rgba(167,139,250,0.6); box-shadow: 0 0 20px rgba(167,139,250,0.15); }
+  }
+
+  /* AI response output */
+  .ai-output {
+    margin-top: 1rem;
+    display: none;
+  }
+  .ai-output.visible { display: block; }
+
+  .ai-output-track {
+    font-size: 0.72rem; color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .ai-output-track::before { content: '🎵'; }
+
+  /* Section cards */
+  .ai-sections { display: flex; flex-direction: column; gap: 0.75rem; }
+
+  .ai-section {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    animation: fade-up 0.4s ease both;
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .ai-section-title {
+    font-size: 0.7rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text3); margin-bottom: 0.65rem;
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  .ai-section-title-icon { font-size: 0.85rem; }
+
+  .ai-tags {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+    margin-bottom: 0.55rem;
+  }
+  .ai-tag {
+    font-size: 0.72rem; font-weight: 500;
+    padding: 0.25rem 0.65rem;
+    border-radius: 100px;
+    border: 1px solid;
+    font-family: 'DM Mono', monospace;
+  }
+  .ai-tag-guitar  { color: #60a5fa; border-color: rgba(96,165,250,0.3); background: rgba(96,165,250,0.07); }
+  .ai-tag-vocal   { color: #f472b6; border-color: rgba(244,114,182,0.3); background: rgba(244,114,182,0.07); }
+  .ai-tag-drums   { color: #fb923c; border-color: rgba(251,146,60,0.3); background: rgba(251,146,60,0.07); }
+  .ai-tag-bass    { color: #4ade80; border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.07); }
+  .ai-tag-keys    { color: #a78bfa; border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.07); }
+  .ai-tag-fx      { color: #fbbf24; border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.07); }
+  .ai-tag-prod    { color: #94a3b8; border-color: rgba(148,163,184,0.3); background: rgba(148,163,184,0.07); }
+
+  .ai-section-desc {
+    font-size: 0.78rem; color: var(--text2);
+    line-height: 1.65;
+  }
+
+  /* Confidence meter */
+  .ai-confidence {
+    display: flex; align-items: center; gap: 0.6rem;
+    margin-top: 0.5rem;
+    font-size: 0.67rem; color: var(--text3); font-family: 'DM Mono', monospace;
+  }
+  .ai-conf-bar {
+    flex: 1; height: 3px; background: rgba(255,255,255,0.07);
+    border-radius: 100px; overflow: hidden;
+  }
+  .ai-conf-fill { height: 100%; border-radius: 100px; background: linear-gradient(90deg, #a78bfa, #60a5fa); }
+
+  /* Streaming cursor */
+  .ai-cursor {
+    display: inline-block; width: 2px; height: 1em;
+    background: #a78bfa; margin-left: 2px;
+    animation: blink-cursor 0.7s step-end infinite;
+    vertical-align: text-bottom;
+  }
+  @keyframes blink-cursor { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .ai-error {
+    font-size: 0.78rem; color: #f87171;
+    padding: 0.65rem 0.9rem;
+    background: rgba(248,113,113,0.07);
+    border: 1px solid rgba(248,113,113,0.2);
+    border-radius: 8px;
+    margin-top: 0.75rem;
+  }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="status-page">
+
+  {# ── PROCESSING ─────────────────────────────────────────────────────────── #}
+  {% if upload.status in ['pending', 'processing'] %}
+  <div class="processing-card">
+    <span class="processing-emoji" id="proc-emoji">🎛️</span>
+    <h2>Working on your track</h2>
+    <div class="track-pill">🎵 {{ upload.original_name }}</div>
+    <div class="funny-label" id="funny-label">Booting up the AI… it asked for a coffee first.</div>
+    <div class="progress-section">
+      <div class="progress-header">
+        <div class="progress-pct" id="prog-pct">0<span>%</span></div>
+        <div class="progress-eta" id="prog-eta">Estimating time…</div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+      <div class="stage-pills" id="stage-pills">
+        <div class="stage-pill" id="stage-upload"><span class="pill-dot"></span>Uploaded ✓</div>
+        <div class="stage-pill" id="stage-load"><span class="pill-dot"></span>Loading model</div>
+        <div class="stage-pill" id="stage-vocals"><span class="pill-dot"></span>Vocals</div>
+        <div class="stage-pill" id="stage-drums"><span class="pill-dot"></span>Drums</div>
+        <div class="stage-pill" id="stage-bass"><span class="pill-dot"></span>Bass</div>
+        <div class="stage-pill" id="stage-guitar"><span class="pill-dot"></span>Guitar</div>
+        <div class="stage-pill" id="stage-piano"><span class="pill-dot"></span>Piano</div>
+        <div class="stage-pill" id="stage-other"><span class="pill-dot"></span>Other</div>
+        <div class="stage-pill" id="stage-pass2"><span class="pill-dot"></span>Guitar/Synth split</div>
+        <div class="stage-pill" id="stage-zip"><span class="pill-dot"></span>Packaging</div>
+      </div>
+    </div>
+    <div class="stem-progress-list">
+      {% for key,emoji,label in [('vocals','🎤','Vocals'),('drums','🥁','Drums'),('bass','🎸','Bass'),('guitar','🎸','Guitar'),('piano','🎹','Piano'),('other','🎹','Other'),('other_guitar','🎸','Synth Guitar'),('other_synth','🎛️','Synth / Pads')] %}
+      <div class="spl-row" id="spl-{{ key }}">
+        <span class="spl-emoji">{{ emoji }}</span>
+        <span class="spl-name">{{ label }}</span>
+        <span class="spl-status" id="spl-status-{{ key }}">Waiting…</span>
+        <div class="spl-bar-wrap"><div class="spl-bar-fill" id="spl-bar-{{ key }}"></div></div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# ── ERROR ─────────────────────────────────────────────────────────────── #}
+  {% elif upload.status == 'error' %}
+  <div class="error-card">
+    <div class="error-icon">⚠️</div>
+    <h2>Separation failed</h2>
+    <p>Something went wrong while processing your track.</p>
+    {% if upload.error_msg %}<div class="error-msg">{{ upload.error_msg }}</div>{% endif %}
+    <a href="{{ url_for('upload.index') }}" class="btn btn-secondary" style="margin-top:1rem">Try again</a>
+  </div>
+
+  {# ── DONE — MIXER ──────────────────────────────────────────────────────── #}
+  {% elif upload.status == 'done' %}
+
+  <div class="mixer-header">
+    <div class="mixer-title">
+      <h2>Your stems are <em>ready</em></h2>
+      <p>{{ upload.original_name }}</p>
+    </div>
+    <a href="{{ url_for('upload.history') }}" class="btn btn-secondary" style="font-size:0.8rem;padding:0.45rem 0.9rem">← History</a>
+  </div>
+
+  {# Analysis chips #}
+  <div class="analysis-row">
+    {% if analysis.get('bpm') %}
+    <div class="analysis-chip">
+      <span class="chip-icon">🥁</span>
+      <div>
+        <div class="chip-label">Detected Tempo</div>
+        <div class="chip-value bpm">{{ analysis.bpm }} <span style="font-size:0.65rem;font-weight:400;color:var(--muted)">BPM</span></div>
+      </div>
+    </div>
+    {% endif %}
+    {% if analysis.get('key') and analysis.key != 'Unknown' %}
+    <div class="analysis-chip">
+      <span class="chip-icon">🎵</span>
+      <div>
+        <div class="chip-label">Detected Key</div>
+        <div class="chip-value key">{{ analysis.key }}</div>
+      </div>
+    </div>
+    {% endif %}
+    <div class="analysis-chip">
+      <span class="chip-icon">🧬</span>
+      <div><div class="chip-label">Model</div><div class="chip-value" style="font-size:0.78rem">htdemucs_6s</div></div>
+    </div>
+    <div class="analysis-chip">
+      <span class="chip-icon">📦</span>
+      <div><div class="chip-label">Stems</div><div class="chip-value">{{ stem_list|length }}</div></div>
+    </div>
+  </div>
+
+  {# Sentinel: invisible marker — when it scrolls off screen, player floats #}
+  <div class="player-sentinel" id="player-sentinel"></div>
+
+  {# Master bar #}
+  <div class="master-bar" id="master-bar">
+    <button class="master-play" id="master-play">▶</button>
+    <div class="master-info">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.1rem">
+        <div class="master-name">{{ upload.original_name }}</div>
+        <div class="master-time" id="master-time">0:00 / 0:00</div>
+      </div>
+      <div class="master-sub">All stems · WAV · 6-stem separation</div>
+      <div class="timeline" id="master-timeline">
+        <div class="timeline-fill" id="master-fill"></div>
+      </div>
+      <div class="master-vol-wrap" style="margin-top:0.65rem;">
+        <span class="master-vol-icon" id="master-vol-icon" style="font-size:0.8rem;cursor:pointer;user-select:none;flex-shrink:0">🔊</span>
+        <input type="range" class="master-vol-slider" id="master-vol"
+               min="0" max="150" value="50" title="Master volume"
+               style="flex:1">
+        <span class="master-vol-pct" id="master-vol-pct"
+              style="font-size:0.68rem;color:var(--muted);width:36px;text-align:right;flex-shrink:0;font-family:'DM Mono',monospace">50%</span>
+      </div>
+    </div>
+  </div>
+  {# Placeholder holds layout space when player becomes fixed #}
+  <div class="master-bar-placeholder" id="master-bar-placeholder"></div>
+
+  {# ── AI ANALYSIS PANEL ─────────────────────────────────────────────────── #}
+  <div class="ai-panel" id="ai-panel">
+    <div class="ai-panel-header" id="ai-panel-toggle">
+      <div class="ai-panel-title">
+        <span>✦</span>
+        AI Music Analysis
+        <span class="ai-badge">AI</span>
+      </div>
+      <span class="ai-panel-chevron">▼</span>
+    </div>
+    <div class="ai-panel-body" id="ai-panel-body">
+      <p style="font-size:0.8rem;color:var(--text2);margin-top:0.85rem;line-height:1.6">
+        Analyze this track to identify guitar effects, instruments, production techniques, and sonic characteristics using AI.
+      </p>
+      <button class="ai-analyze-btn" id="ai-analyze-btn">
+        <span id="ai-btn-icon">✦</span>
+        <span id="ai-btn-text">Analyze Track</span>
+      </button>
+      <div class="ai-output" id="ai-output">
+        <div class="ai-output-track" id="ai-track-name"></div>
+        <div class="ai-sections" id="ai-sections"></div>
+      </div>
+      <div class="ai-error" id="ai-error" style="display:none"></div>
+    </div>
+  </div>
+
+  {# ── CHORD DETECTION PANEL ────────────────────────────────────────────── #}
+  <div class="chord-panel" id="chord-panel">
+    <div class="chord-panel-header" id="chord-panel-toggle">
+      <div class="chord-panel-title">
+        <span>♪</span>
+        Chord Detection
+        <span class="chord-badge">AI</span>
+      </div>
+      <span class="chord-chevron">▼</span>
+    </div>
+    <div class="chord-panel-body">
+      <p style="font-size:0.8rem;color:var(--text2);margin-top:0.85rem;line-height:1.6">
+        Detect the chord progression, key, and harmonic structure of this track using AI analysis.
+      </p>
+      <button class="chord-detect-btn" id="chord-detect-btn">
+        <span id="chord-btn-icon">♪</span>
+        <span id="chord-btn-text">Detect Chords</span>
+      </button>
+
+      {# Live chord display — shows current chord while playing #}
+      <div id="live-chord-wrap" style="display:none;margin-top:1rem;">
+        <div style="display:flex;align-items:center;gap:0.75rem;padding:0.9rem 1rem;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:12px;">
+          <div style="flex:1">
+            <div style="font-size:0.65rem;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Now Playing</div>
+            <div id="live-chord-display" style="font-size:2rem;font-weight:700;color:#f59e0b;font-family:'DM Mono',monospace;line-height:1">—</div>
+          </div>
+          <div style="font-size:1.8rem;opacity:0.3">♪</div>
+        </div>
+        <div style="font-size:0.68rem;color:var(--text3);margin-top:0.5rem;text-align:center;font-family:'DM Mono',monospace">
+          Updates every 0.5s based on audio analysis · Play the track to activate
+        </div>
+      </div>
+      <div class="chord-output" id="chord-output">
+        <div class="chord-key-row" id="chord-key-row"></div>
+        <div class="chord-desc" id="chord-desc"></div>
+        <div class="chord-progression" id="chord-progression"></div>
+        <div class="chord-roman-row" id="chord-roman-row"></div>
+        <div class="chord-suggestions" id="chord-suggestions"></div>
+      </div>
+      <div class="chord-error" id="chord-error" style="display:none"></div>
+    </div>
+  </div>
+
+  {# ── PITCH & TEMPO PANEL ───────────────────────────────────────────────── #}
+  <div class="tuning-panel">
+    <div class="tuning-header">
+      <div class="tuning-title">
+        <span class="tuning-title-icon">🎛️</span>
+        Pitch &amp; Tempo
+      </div>
+      <button class="tuning-reset" id="tuning-reset">Reset all</button>
+    </div>
+
+    <div class="tuning-rows">
+
+      {# PITCH ROW #}
+      <div class="tuning-row">
+        <div class="tuning-label-wrap">
+          <span class="tuning-label">Pitch</span>
+          <span class="tuning-sublabel">Semitones</span>
+        </div>
+        <input type="range" class="tuning-slider" id="pitch-slider"
+               min="-12" max="12" step="1" value="0">
+        <div class="tuning-value-wrap">
+          <div class="tuning-value pitch-val" id="pitch-display">0</div>
+          <div class="tuning-unit">semitones</div>
+        </div>
+      </div>
+
+      {# Semitone quick-select buttons #}
+      <div class="semitone-keys" id="semitone-keys">
+        {% for n in [-5,-4,-3,-2,-1,0,1,2,3,4,5] %}
+        <button class="semitone-key {% if n==0 %}active{% endif %}"
+                data-semi="{{ n }}">
+          {% if n > 0 %}+{{ n }}{% else %}{{ n }}{% endif %}
+        </button>
+        {% endfor %}
+      </div>
+
+      {# TEMPO ROW #}
+      <div class="tuning-row" style="margin-top:0.5rem">
+        <div class="tuning-label-wrap">
+          <span class="tuning-label">Tempo</span>
+          <span class="tuning-sublabel">Playback rate</span>
+        </div>
+        <input type="range" class="tuning-slider" id="tempo-slider"
+               min="50" max="200" step="1" value="100">
+        <div class="tuning-value-wrap">
+          <div class="tuning-value tempo-val" id="tempo-display">100</div>
+          <div class="tuning-unit">%</div>
+        </div>
+      </div>
+
+      {# BPM preset buttons #}
+      <div class="bpm-presets" id="bpm-presets">
+        {% set presets = [('0.5×', 50), ('0.75×', 75), ('Normal', 100), ('1.25×', 125), ('1.5×', 150), ('2×', 200)] %}
+        {% for label, val in presets %}
+        <button class="bpm-preset {% if val==100 %}active{% endif %}"
+                data-tempo="{{ val }}">{{ label }}</button>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+
+  {# Stem rows #}
+  {% set stem_defs = {
+    'vocals':       ('🎤','Vocals',       '#e63a50',1.0),
+    'drums':        ('🥁','Drums',        '#ff9f0a',1.0),
+    'bass':         ('🎸','Bass',         '#30d158',2.5),
+    'guitar':       ('🎸','Guitar',       '#0a84ff',1.0),
+    'piano':        ('🎹','Piano',        '#bf5af2',1.0),
+    'other':        ('🎹','Other',        '#6e6e73',1.0),
+    'other_guitar': ('🎸','Synth Guitar', '#ff6b35',1.0),
+    'other_synth':  ('🎛️','Synth / Pads', '#5ac8fa',1.0),
+  } %}
+  <div class="mixer-grid" id="mixer-grid">
+    {% for stem_file in stem_list %}
+      {% set key = stem_file.replace('.wav','') %}
+      {% if key in stem_defs %}
+        {% set emoji,label,color,boost = stem_defs[key] %}
+    <div class="stem-row" id="row-{{ key }}" data-stem="{{ key }}" data-boost="{{ boost }}" style="--stem-color:{{ color }}">
+      <div class="stem-row-top">
+        <span class="stem-emoji">{{ emoji }}</span>
+        <button class="stem-play" id="play-{{ key }}" data-stem="{{ key }}">▶</button>
+        <div class="stem-meta">
+          <div class="stem-name">{{ label }}</div>
+          <div class="stem-file">{{ key }}.wav</div>
+        </div>
+        <div class="stem-viz" id="viz-{{ key }}">
+          <canvas class="stem-waveform" id="waveform-{{ key }}" height="36"></canvas>
+          <div class="stem-waveform-loading" id="wvload-{{ key }}"></div>
+          <div class="stem-playhead" id="playhead-{{ key }}"></div>
+        </div>
+        <div class="vol-wrap">
+          <span class="vol-icon" id="vol-icon-{{ key }}">🔉</span>
+          <input type="range" class="vol-slider" id="vol-{{ key }}" min="0" max="100" value="100" data-stem="{{ key }}">
+        </div>
+        <button class="mute-btn" id="mute-{{ key }}" data-stem="{{ key }}">🔊</button>
+        <a href="{{ url_for('upload.stem_download', upload_id=upload.id, stem_name=stem_file) }}"
+           class="stem-dl" title="Download {{ label }}" download>↓</a>
+      </div>
+      <div class="stem-reverb-strip">
+        <span class="stem-reverb-label">Rvb</span>
+        <div class="stem-reverb-track" id="rvb-track-{{ key }}">
+          <div class="stem-reverb-fill" id="rvb-fill-{{ key }}"></div>
+          <input type="range" class="reverb-slider" id="reverb-{{ key }}"
+                 min="0" max="100" value="0" data-stem="{{ key }}">
+        </div>
+        <span class="stem-reverb-val" id="rvb-val-{{ key }}">0%</span>
+      </div>
+    </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {# ── EXPORT & MASTER PANEL ────────────────────────────────────────────── #}
+  <div class="export-panel">
+    <div class="export-header">
+      <div class="export-title">
+        <span>🎚️</span> Export &amp; Master
+      </div>
+      <div class="export-subtitle">Renders your current mix (mutes + volumes) to a file</div>
+    </div>
+
+    <div class="export-formats">
+      <button class="fmt-btn active" data-fmt="wav" id="fmt-wav">
+        <span class="fmt-icon">💿</span>
+        <span class="fmt-name">Lossless WAV</span>
+        <span class="fmt-detail">16-bit · 44.1kHz · PCM</span>
+      </button>
+      <button class="fmt-btn" data-fmt="mp3" id="fmt-mp3">
+        <span class="fmt-icon">🎵</span>
+        <span class="fmt-name">MP3 320kbps</span>
+        <span class="fmt-detail">High quality · Smaller file</span>
+      </button>
+    </div>
+
+    <div class="export-info-row">
+      <div class="export-info-chip" id="export-stems-active">
+        <span>🎛️</span> <span id="active-stem-count">—</span> stems in mix
+      </div>
+      <div class="export-info-chip" id="export-pitch-chip" style="display:none">
+        <span>🎼</span> Pitch <span id="export-pitch-val">0</span>st
+      </div>
+      <div class="export-info-chip" id="export-tempo-chip" style="display:none">
+        <span>⏱️</span> Tempo <span id="export-tempo-val">100</span>%
+      </div>
+    </div>
+
+    <div class="export-actions">
+      <button class="btn btn-export" id="export-btn">
+        <span id="export-btn-icon">⬇</span>
+        <span id="export-btn-text">Render &amp; Download</span>
+      </button>
+      <a href="{{ url_for('upload.download', upload_id=upload.id) }}"
+         class="btn btn-secondary" style="font-size:0.8rem">
+        ↓ Raw stems ZIP
+      </a>
+    </div>
+
+    <div class="export-prog-wrap" id="export-prog-wrap" style="display:none">
+      <div class="export-prog-bar" id="export-prog-bar"></div>
+    </div>
+    <div class="export-status" id="export-status"></div>
+  </div>
+
+  {% endif %}
+</div>
+
+{# ── MINI FLOATING PLAYER WIDGET ──────────────────────────────────────────── #}
+<div id="mini-player" role="region" aria-label="Mini player">
+  <div class="mini-drag-handle" id="mini-drag-handle">
+    <div class="mini-drag-dots">
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+    </div>
+    <span class="mini-drag-label">Now Playing</span>
+    <button class="mini-close" id="mini-close" title="Dismiss (scroll up to restore)">✕</button>
+  </div>
+  <div class="mini-body">
+    <div class="mini-track-name" id="mini-track-name">—</div>
+    <div class="mini-controls">
+      <button class="mini-play" id="mini-play-btn">▶</button>
+      <div class="mini-timeline-wrap">
+        <div class="mini-timeline" id="mini-timeline">
+          <div class="mini-timeline-fill" id="mini-fill"></div>
+        </div>
+        <div class="mini-time" id="mini-time">0:00 / 0:00</div>
+      </div>
+    </div>
+    <div class="mini-vol-row">
+      <span class="mini-vol-icon" id="mini-vol-icon">🔊</span>
+      <input type="range" class="mini-vol-slider" id="mini-vol"
+             min="0" max="150" value="50">
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const STATUS     = "{{ upload.status }}";
+const STATUS_URL = "{{ url_for('upload.api_status', upload_id=upload.id) }}";
+const UPLOAD_ID  = {{ upload.id }};
+const DETECTED_BPM = {{ analysis.get('bpm', 0) if upload.status == 'done' else 0 }};
+
+/* ══════════════════════════════════════════════════════════════
+   PROCESSING ANIMATION
+══════════════════════════════════════════════════════════════ */
+if (STATUS === 'pending' || STATUS === 'processing') {
+  const MESSAGES = [
+    { msg:"Booting up the AI… it asked for a coffee first.",             emoji:"☕" },
+    { msg:"Convincing the bass to stop hiding behind the kick drum…",    emoji:"🥁" },
+    { msg:"Teaching the AI what a guitar solo sounds like. It's crying.",emoji:"🎸" },
+    { msg:"Politely asking the vocalist to step aside for a moment…",    emoji:"🎤" },
+    { msg:"Separating the drums atom by atom. Science!",                 emoji:"🔬" },
+    { msg:"The AI is vibing to your track. Can't rush genius.",          emoji:"😎" },
+    { msg:"Untangling the piano from the rest of the chaos…",            emoji:"🎹" },
+    { msg:"Running 47 neural layers. Only 46 are confused.",             emoji:"🧠" },
+    { msg:"Your bass line is surprisingly philosophical. It asked why.",  emoji:"🤔" },
+    { msg:"The guitar stem just formed its own band. We negotiated.",    emoji:"🎸" },
+    { msg:"Almost there! The AI is adding sparkles (not really).",       emoji:"✨" },
+    { msg:"Telling the drums they can have their own room now.",          emoji:"🥁" },
+    { msg:"The vocals are shy. Gently coaxing them out…",                emoji:"🎤" },
+    { msg:"Demucs is doing its thing. Go grab a snack.",                 emoji:"🍿" },
+    { msg:"Piano stem located. It was hiding under the reverb.",         emoji:"🎹" },
+    { msg:"Carefully peeling layers like a very expensive onion.",        emoji:"🧅" },
+    { msg:"Neural network is sweating. It's fine. Totally fine.",        emoji:"💦" },
+    { msg:"Wrapping everything in a neat ZIP. With a bow.",              emoji:"🎁" },
+    { msg:"Round 2: asking the synth and guitar to stop sharing a room.",emoji:"🎸" },
+    { msg:"The synth pad is being very uncooperative. Typical.",         emoji:"🎛️" },
+    { msg:"Guitar vs Synth — the AI is refereeing. It's tense.",        emoji:"⚡" },
+    { msg:"Second pass running… this is where the magic happens.",       emoji:"✨" },
+  ];
+  const STAGES = [
+    {id:'stage-upload', pct:5,  stems:[]},
+    {id:'stage-load',   pct:10, stems:[]},
+    {id:'stage-vocals', pct:22, stems:['vocals']},
+    {id:'stage-drums',  pct:34, stems:['drums']},
+    {id:'stage-bass',   pct:44, stems:['bass']},
+    {id:'stage-guitar', pct:54, stems:['guitar']},
+    {id:'stage-piano',  pct:62, stems:['piano']},
+    {id:'stage-other',  pct:70, stems:['other']},
+    {id:'stage-pass2',  pct:88, stems:['other_guitar','other_synth']},
+    {id:'stage-zip',    pct:97, stems:[]},
+  ];
+  const SPL_STEMS=['vocals','drums','bass','guitar','piano','other','other_guitar','other_synth'];
+  let currentPct=0, targetPct=5, stageIndex=0, msgIndex=0, startedAt=Date.now();
+
+  function setProgress(p) {
+    document.getElementById('prog-fill').style.width = p+'%';
+    document.getElementById('prog-pct').innerHTML = Math.round(p)+'<span>%</span>';
+    const el = Math.round((Date.now()-startedAt)/1000);
+    const rem = p>5 ? Math.round((el/p)*(100-p)) : null;
+    document.getElementById('prog-eta').textContent = rem ? `~${rem}s remaining` : 'Estimating time…';
+  }
+  function setStageDone(id)   { const e=document.getElementById(id); if(e){e.classList.remove('active');e.classList.add('done');} }
+  function setStageActive(id) { const e=document.getElementById(id); if(e){e.classList.remove('done');e.classList.add('active');} }
+  function setStemActive(k) {
+    const r=document.getElementById('spl-'+k), b=document.getElementById('spl-bar-'+k), s=document.getElementById('spl-status-'+k);
+    if(!r)return; r.classList.add('active'); if(s)s.textContent='Processing…'; if(b)b.style.width='100%';
+  }
+  function setStemDone(k) {
+    const r=document.getElementById('spl-'+k), s=document.getElementById('spl-status-'+k);
+    if(!r)return; r.classList.remove('active'); r.classList.add('done'); if(s)s.textContent='Done ✓';
+  }
+  function setFunnyMsg(idx) {
+    const el=document.getElementById('funny-label'), em=document.getElementById('proc-emoji');
+    const msg=MESSAGES[idx%MESSAGES.length];
+    el.classList.add('fade');
+    setTimeout(()=>{ el.textContent=msg.msg; el.classList.remove('fade'); if(em)em.textContent=msg.emoji; }, 400);
+  }
+
+  setStageDone('stage-upload'); setStageActive('stage-load'); setProgress(5); setFunnyMsg(0);
+
+  const progressTick = setInterval(()=>{
+    if(currentPct < targetPct){ const s=Math.max(0.2,(targetPct-currentPct)*0.06); currentPct=Math.min(currentPct+s,targetPct); setProgress(currentPct); }
+  }, 200);
+  const stageTimer = setInterval(()=>{
+    stageIndex++; if(stageIndex>=STAGES.length){clearInterval(stageTimer);return;}
+    const prev=STAGES[stageIndex-1], curr=STAGES[stageIndex];
+    setStageDone(prev.id); prev.stems.forEach(s=>setStemDone(s));
+    setStageActive(curr.id); curr.stems.forEach(s=>setStemActive(s));
+    targetPct=curr.pct; msgIndex++; setFunnyMsg(msgIndex);
+  }, 18000);
+  const msgTimer = setInterval(()=>{ msgIndex++; setFunnyMsg(msgIndex); }, 12000);
+  const pollTimer = setInterval(async()=>{
+    try {
+      const r=await fetch(STATUS_URL), d=await r.json();
+      if(d.status==='processing' && stageIndex<2){ stageIndex=1; setStageDone('stage-upload'); setStageActive('stage-load'); }
+      if(d.status==='done' || d.status==='error'){
+        clearInterval(progressTick); clearInterval(stageTimer); clearInterval(msgTimer); clearInterval(pollTimer);
+        currentPct=97; targetPct=100; setProgress(100);
+        document.getElementById('funny-label').textContent='🎉 Done! Loading your mixer…';
+        document.getElementById('proc-emoji').textContent='🎉';
+        STAGES.forEach(s=>setStageDone(s.id)); SPL_STEMS.forEach(s=>setStemDone(s));
+        setTimeout(()=>location.reload(), 1200);
+      }
+    } catch(e){}
+  }, 4000);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MIXER — clean audio engine
+   
+   Key rules about AudioBufferSourceNode:
+   ✗ Cannot pause/resume — must stop() and create a new node
+   ✗ Cannot seek — use start(0, bufferOffset) once at creation
+   ✓ playbackRate changes BOTH speed and pitch (tape effect)
+   ✓ detune (cents) shifts pitch without changing speed
+   
+   To change TEMPO without changing PITCH:
+     src.playbackRate = rate
+     src.detune = (wantedSemitones - 12·log₂(rate)) × 100 cents
+   
+   pauseOffset tracks position in REAL seconds (rate-independent).
+   bufferOffset = pauseOffset × rate  (what the buffer needs)
+══════════════════════════════════════════════════════════════ */
+if (STATUS === 'done') {
+
+  const STEM_KEYS = [...document.querySelectorAll('.stem-row')].map(r => r.dataset.stem);
+  const BOOSTS    = Object.fromEntries(
+    [...document.querySelectorAll('.stem-row')].map(r => [r.dataset.stem, parseFloat(r.dataset.boost) || 1])
+  );
+
+  // AudioContext — one per page
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+  // Master gain node — sits between all stem gains and destination
+  const masterGain = ctx.createGain();
+  masterGain.gain.value = 0.5;
+  masterGain.connect(ctx.destination);
+
+  // Gain nodes persist across play/stop cycles
+  const gainNodes = {};
+  const muteState = {};
+  STEM_KEYS.forEach(k => {
+    const g = ctx.createGain();
+    g.gain.value = BOOSTS[k] || 1;
+    g.connect(masterGain);   // ← connect to masterGain, not destination
+    gainNodes[k] = g;
+    muteState[k] = false;
+  });
+
+  // Decoded PCM buffers loaded once
+  const pcm = {};
+  let trackDuration = 0;
+
+  // ── State machine ───────────────────────────────────────────────────
+  // pauseOffset: real-world seconds into track (independent of tempo)
+  let pauseOffset  = 0;
+  let playStartedAt = 0;     // ctx.currentTime when current play session began
+  let isPlaying    = false;
+  let activeSrcs   = {};     // key → live AudioBufferSourceNode
+  let soloKey      = null;   // null = master, string = solo
+  let rafId        = null;
+
+  // ── Tuning ──────────────────────────────────────────────────────────
+  let wantSemitones = 0;
+  let tempoPct      = 100;
+
+  // Key chip
+  const CHROMATIC = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const ORIG_KEY   = "{{ analysis.get('key','') if upload.status=='done' else '' }}";
+
+  function transposeKey(semi) {
+    if (!ORIG_KEY || ORIG_KEY === 'Unknown') return ORIG_KEY;
+    const parts = ORIG_KEY.split(' ');
+    const i     = CHROMATIC.indexOf(parts[0]);
+    if (i < 0) return ORIG_KEY;
+    return CHROMATIC[((i + semi) % 12 + 12) % 12] + ' ' + parts.slice(1).join(' ');
+  }
+  function refreshKeyChip() {
+    const el = document.querySelector('.chip-value.key');
+    if (el && ORIG_KEY) el.textContent = transposeKey(wantSemitones);
+  }
+  function refreshBpmChip() {
+    const el = document.querySelector('.chip-value.bpm');
+    if (el && DETECTED_BPM)
+      el.innerHTML = (DETECTED_BPM * tempoPct / 100).toFixed(1) +
+        ' <span style="font-size:0.65rem;font-weight:400;color:var(--muted)">BPM</span>';
+  }
+
+  // ── Waveform renderer ────────────────────────────────────────────────
+  function drawWaveformForStem(key) {
+    const canvas = document.getElementById('waveform-' + key);
+    const loader = document.getElementById('wvload-' + key);
+    const buffer = pcm[key];
+    if (!canvas || !buffer) return;
+
+    // Get stem color from CSS variable
+    const row   = document.getElementById('row-' + key);
+    const color = row ? getComputedStyle(row).getPropertyValue('--stem-color').trim() : '#ffffff';
+
+    const dpr = window.devicePixelRatio || 1;
+    const w   = canvas.parentElement.offsetWidth || 200;
+    const h   = 36;
+    canvas.width  = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width  = w + 'px';
+    canvas.style.height = h + 'px';
+
+    const c    = canvas.getContext('2d');
+    c.scale(dpr, dpr);
+
+    const data = buffer.getChannelData(0);
+    const step = Math.max(1, Math.floor(data.length / w));
+    const mid  = h / 2;
+    const amp  = mid * 0.88;
+
+    c.clearRect(0, 0, w, h);
+
+    // Build top and bottom path
+    c.beginPath();
+    c.moveTo(0, mid);
+    const tops = [], bots = [];
+    for (let i = 0; i < w; i++) {
+      let mn = 0, mx = 0;
+      const start = i * step;
+      for (let j = 0; j < step; j++) {
+        const v = data[start + j] || 0;
+        if (v > mx) mx = v;
+        if (v < mn) mn = v;
+      }
+      tops.push(mid - mx * amp);
+      bots.push(mid - mn * amp);
+    }
+    // Forward (top)
+    tops.forEach((y, i) => i === 0 ? c.moveTo(i, y) : c.lineTo(i, y));
+    // Backward (bottom)
+    for (let i = w - 1; i >= 0; i--) c.lineTo(i, bots[i]);
+    c.closePath();
+
+    const grad = c.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0,   color + 'aa');
+    grad.addColorStop(0.5, color + 'ff');
+    grad.addColorStop(1,   color + 'aa');
+    c.fillStyle = grad;
+    c.fill();
+
+    // Center line
+    c.beginPath(); c.moveTo(0, mid); c.lineTo(w, mid);
+    c.strokeStyle = color + '33'; c.lineWidth = 0.5; c.stroke();
+
+    if (loader) loader.style.display = 'none';
+  }
+
+  // Redraw all on resize
+  window.addEventListener('resize', () => {
+    STEM_KEYS.forEach(k => { if (pcm[k]) drawWaveformForStem(k); });
+  });
+
+  // ── Load ─────────────────────────────────────────────────────────────
+  async function loadAll() {
+    await Promise.all(STEM_KEYS.map(async k => {
+      try {
+        const res = await fetch(`/upload/stem/${UPLOAD_ID}/${k}.wav`);
+        if (!res.ok) return;
+        pcm[k] = await ctx.decodeAudioData(await res.arrayBuffer());
+        if (pcm[k].duration > trackDuration) trackDuration = pcm[k].duration;
+        // Draw waveform immediately after this stem loads
+        drawWaveformForStem(k);
+      } catch(e) { console.warn('stem load failed', k, e); }
+    }));
+    refreshTimeline(0);
+  }
+
+  // ── Source creation ──────────────────────────────────────────────────
+  // realOffset: seconds in the track (what the user sees on the timeline)
+  function makeSrc(key, realOffset) {
+    if (!pcm[key]) return null;
+    const rate  = tempoPct / 100;
+    // Semitones introduced by rate change (tape effect)
+    const rateShift = 12 * Math.log2(Math.max(rate, 0.00001));
+    // We want wantSemitones total — subtract what rate already gives us
+    const cents = (wantSemitones - rateShift) * 100;
+
+    const s = ctx.createBufferSource();
+    s.buffer             = pcm[key];
+    s.playbackRate.value = rate;
+    s.detune.value       = cents;
+    s.connect(gainNodes[key]);
+    // Buffer offset must be in BUFFER time (faster playback = less buffer consumed)
+    const bufOffset = Math.max(0, Math.min(realOffset * rate, pcm[key].duration - 0.001));
+    s.start(0, bufOffset);
+    return s;
+  }
+
+  // ── Core play/stop primitives ────────────────────────────────────────
+  function killSources() {
+    // Silence and discard all live sources immediately
+    Object.values(activeSrcs).forEach(s => {
+      try { s.onended = null; s.stop(0); } catch(e) {}
+    });
+    activeSrcs = {};
+    cancelAnimationFrame(rafId);
+  }
+
+  // currentRealPos: where we are in the track right now (real seconds)
+  function currentRealPos() {
+    if (!isPlaying) return pauseOffset;
+    const wallElapsed = ctx.currentTime - playStartedAt;
+    return Math.min(pauseOffset + wallElapsed * (tempoPct / 100), trackDuration);
+  }
+
+  function startPlayback(keys, offset) {
+    if (ctx.state === 'suspended') ctx.resume();
+    killSources();
+
+    const validKeys = keys.filter(k => pcm[k]);
+    if (!validKeys.length) return;
+
+    playStartedAt = ctx.currentTime;
+    pauseOffset   = offset;
+    isPlaying     = true;
+
+    // Track natural end — only the first onended that fires counts
+    let naturalEndFired = false;
+    validKeys.forEach(k => {
+      const s = makeSrc(k, offset);
+      if (!s) return;
+      activeSrcs[k] = s;
+      s.onended = () => {
+        if (!isPlaying) return;             // we stopped it manually
+        if (naturalEndFired) return;
+        naturalEndFired = true;
+        isPlaying    = false;
+        pauseOffset  = 0;
+        soloKey      = null;
+        cancelAnimationFrame(rafId);
+        setTimelineWidth(0);
+        refreshTimeline(0);
+        setMasterBtn(false);
+        STEM_KEYS.forEach(k2 => rowPlaying(k2, false));
+      };
+    });
+
+    tickProgress();
+  }
+
+  function stopPlayback() {
+    pauseOffset = currentRealPos();   // freeze position BEFORE killing
+    isPlaying   = false;
+    killSources();
+  }
+
+  // ── Timeline RAF ─────────────────────────────────────────────────────
+  function tickProgress() {
+    rafId = requestAnimationFrame(() => {
+      const pos = currentRealPos();
+      setTimelineWidth(trackDuration > 0 ? pos / trackDuration * 100 : 0);
+      refreshTimeline(pos);
+      if (isPlaying) tickProgress();
+    });
+  }
+
+  function setTimelineWidth(pct) {
+    document.getElementById('master-fill').style.width = Math.min(pct, 100) + '%';
+  }
+  function refreshTimeline(pos) {
+    document.getElementById('master-time').textContent =
+      fmtTime(Math.min(pos, trackDuration)) + ' / ' + fmtTime(trackDuration);
+  }
+  function fmtTime(s) {
+    const m = Math.floor(s/60), sec = Math.floor(s % 60);
+    return m + ':' + String(sec).padStart(2,'0');
+  }
+
+  // ── UI helpers ────────────────────────────────────────────────────────
+  function setMasterBtn(on) {
+    document.getElementById('master-play').textContent = on ? '⏸' : '▶';
+  }
+  function rowPlaying(key, on) {
+    const btn = document.getElementById('play-'+key); if (!btn) return;
+    btn.textContent = on ? '⏸' : '▶';
+    btn.classList.toggle('active', on);
+    document.getElementById('row-'+key)?.classList.toggle('soloing', on);
+    document.querySelectorAll(`#viz-${key} .viz-bar`).forEach((b, i) => {
+      b.classList.toggle('playing', on);
+      b.style.animationDelay = on ? (i * 0.04) + 's' : '';
+    });
+  }
+
+  // ── MASTER PLAY/PAUSE ─────────────────────────────────────────────────
+  document.getElementById('master-play').addEventListener('click', () => {
+    if (ctx.state === 'suspended') ctx.resume();
+
+    if (isPlaying) {
+      // PAUSE
+      stopPlayback();
+      soloKey = null;
+      setMasterBtn(false);
+      STEM_KEYS.forEach(k => rowPlaying(k, false));
+    } else {
+      // PLAY
+      soloKey = null;
+      startPlayback(STEM_KEYS, pauseOffset);
+      setMasterBtn(true);
+      STEM_KEYS.forEach(k => rowPlaying(k, true));
+    }
+  });
+
+  // ── TIMELINE SCRUB ────────────────────────────────────────────────────
+  document.getElementById('master-timeline').addEventListener('click', e => {
+    if (!trackDuration) return;
+    const rect   = e.currentTarget.getBoundingClientRect();
+    const newPos = ((e.clientX - rect.left) / rect.width) * trackDuration;
+    pauseOffset  = Math.max(0, Math.min(newPos, trackDuration));
+
+    if (isPlaying) {
+      const playKeys = soloKey ? [soloKey] : STEM_KEYS;
+      isPlaying = false;   // reset before startPlayback sets it again
+      startPlayback(playKeys, pauseOffset);
+      if (!soloKey) STEM_KEYS.forEach(k => rowPlaying(k, true));
+      else rowPlaying(soloKey, true);
+    } else {
+      setTimelineWidth(pauseOffset / trackDuration * 100);
+      refreshTimeline(pauseOffset);
+    }
+  });
+
+  // ── PER-STEM SOLO ─────────────────────────────────────────────────────
+  document.querySelectorAll('.stem-play').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (ctx.state === 'suspended') ctx.resume();
+      const key = btn.dataset.stem;
+
+      if (isPlaying && soloKey === key) {
+        // Tap again on playing solo → pause
+        stopPlayback();
+        soloKey = null;
+        rowPlaying(key, false);
+        return;
+      }
+
+      // Capture position before stopping anything
+      const pos = isPlaying ? currentRealPos() : pauseOffset;
+      stopPlayback();
+
+      // Reset all UI
+      setMasterBtn(false);
+      STEM_KEYS.forEach(k => rowPlaying(k, false));
+
+      soloKey = key;
+      startPlayback([key], pos);
+      rowPlaying(key, true);
+    });
+  });
+
+  // ── MASTER VOLUME ─────────────────────────────────────────────────────
+  const masterVolSlider = document.getElementById('master-vol');
+  const masterVolPct    = document.getElementById('master-vol-pct');
+  const masterVolIcon   = document.getElementById('master-vol-icon');
+
+  function setMasterVol(val) {
+    const pct = parseInt(val);
+    masterGain.gain.value = pct / 100;
+    masterVolSlider.value = pct;
+    masterVolPct.textContent = pct + '%';
+    masterVolIcon.textContent = pct === 0 ? '🔇' : pct < 50 ? '🔈' : pct <= 100 ? '🔊' : '📢';
+  }
+
+  masterVolSlider.addEventListener('input', () => setMasterVol(masterVolSlider.value));
+
+  // Click icon to toggle mute
+  masterVolIcon.addEventListener('click', () => {
+    if (masterGain.gain.value > 0) {
+      masterVolIcon._savedVal = masterVolSlider.value;
+      setMasterVol(0);
+    } else {
+      setMasterVol(masterVolIcon._savedVal || 100);
+    }
+  });
+  document.querySelectorAll('.vol-slider').forEach(s => {
+    s.addEventListener('input', () => {
+      const key=s.dataset.stem, val=s.value/100, boost=BOOSTS[key]||1;
+      if (!muteState[key]) gainNodes[key].gain.value = val * boost;
+      const ic = document.getElementById('vol-icon-'+key);
+      if (ic) ic.textContent = +s.value===0 ? '🔇' : +s.value<50 ? '🔈' : '🔉';
+    });
+  });
+
+  // ── MUTE ──────────────────────────────────────────────────────────────
+  document.querySelectorAll('.mute-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.stem;
+      muteState[key] = !muteState[key];
+      const vol = document.getElementById('vol-'+key).value / 100;
+      gainNodes[key].gain.value = muteState[key] ? 0 : vol * (BOOSTS[key]||1);
+      btn.classList.toggle('muted', muteState[key]);
+      btn.textContent = muteState[key] ? '🔇' : '🔊';
+      document.getElementById('row-'+key)?.classList.toggle('muted', muteState[key]);
+    });
+  });
+
+  // ── APPLY TUNING CHANGE mid-playback ──────────────────────────────────
+  // Captures position, stops, recreates sources with new tuning values
+  function applyTuningChange() {
+    if (!isPlaying) return;
+    const pos      = currentRealPos();
+    const playKeys = soloKey ? [soloKey] : STEM_KEYS;
+    isPlaying = false;
+    startPlayback(playKeys, pos);
+    if (!soloKey) STEM_KEYS.forEach(k => rowPlaying(k, true));
+    else rowPlaying(soloKey, true);
+  }
+
+  // ── PITCH SLIDER ──────────────────────────────────────────────────────
+  document.getElementById('pitch-slider').addEventListener('input', function() {
+    wantSemitones = parseInt(this.value);
+    document.getElementById('pitch-display').textContent = (wantSemitones>0?'+':'') + wantSemitones;
+    document.querySelectorAll('.semitone-key').forEach(k =>
+      k.classList.toggle('active', parseInt(k.dataset.semi) === wantSemitones));
+    refreshKeyChip();
+    applyTuningChange();
+  });
+  document.querySelectorAll('.semitone-key').forEach(btn => {
+    btn.addEventListener('click', () => {
+      wantSemitones = parseInt(btn.dataset.semi);
+      document.getElementById('pitch-slider').value = wantSemitones;
+      document.getElementById('pitch-display').textContent = (wantSemitones>0?'+':'') + wantSemitones;
+      document.querySelectorAll('.semitone-key').forEach(k =>
+        k.classList.toggle('active', parseInt(k.dataset.semi) === wantSemitones));
+      refreshKeyChip();
+      applyTuningChange();
+    });
+  });
+
+  // ── TEMPO SLIDER ──────────────────────────────────────────────────────
+  document.getElementById('tempo-slider').addEventListener('input', function() {
+    tempoPct = parseInt(this.value);
+    document.getElementById('tempo-display').textContent = tempoPct;
+    document.querySelectorAll('.bpm-preset').forEach(b =>
+      b.classList.toggle('active', parseInt(b.dataset.tempo) === tempoPct));
+    refreshBpmChip();
+    applyTuningChange();
+  });
+  document.querySelectorAll('.bpm-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      tempoPct = parseInt(btn.dataset.tempo);
+      document.getElementById('tempo-slider').value = tempoPct;
+      document.getElementById('tempo-display').textContent = tempoPct;
+      document.querySelectorAll('.bpm-preset').forEach(b =>
+        b.classList.toggle('active', parseInt(b.dataset.tempo) === tempoPct));
+      refreshBpmChip();
+      applyTuningChange();
+    });
+  });
+
+  // ── RESET ─────────────────────────────────────────────────────────────
+  document.getElementById('tuning-reset').addEventListener('click', () => {
+    wantSemitones = 0;
+    tempoPct      = 100;
+    document.getElementById('pitch-slider').value    = 0;
+    document.getElementById('pitch-display').textContent = '0';
+    document.getElementById('tempo-slider').value    = 100;
+    document.getElementById('tempo-display').textContent = '100';
+    document.querySelectorAll('.semitone-key').forEach(k =>
+      k.classList.toggle('active', parseInt(k.dataset.semi) === 0));
+    document.querySelectorAll('.bpm-preset').forEach(b =>
+      b.classList.toggle('active', parseInt(b.dataset.tempo) === 100));
+    refreshKeyChip();
+    refreshBpmChip();
+    applyTuningChange();
+  });
+
+  loadAll();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   EXPORT PANEL JS
+══════════════════════════════════════════════════════════════ */
+if (STATUS === 'done') {
+  const EXPORT_URL = "{{ url_for('upload.export_mix', upload_id=upload.id) }}";
+  let exportFmt = 'wav';
+
+  // Format selector
+  document.querySelectorAll('.fmt-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      exportFmt = btn.dataset.fmt;
+      document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Live info chips — call this from mixer whenever mute/pitch/tempo changes
+  function refreshExportChips() {
+    // Count active (non-muted) stems
+    let active = 0;
+    document.querySelectorAll('.stem-row').forEach(row => {
+      const key = row.dataset.stem;
+      const muteBtn = document.getElementById('mute-' + key);
+      if (muteBtn && !muteBtn.classList.contains('muted')) active++;
+    });
+    document.getElementById('active-stem-count').textContent = active;
+
+    // Pitch chip
+    const pSemi = parseInt(document.getElementById('pitch-slider')?.value || 0);
+    const pChip = document.getElementById('export-pitch-chip');
+    if (pChip) {
+      pChip.style.display = pSemi !== 0 ? 'flex' : 'none';
+      const pv = document.getElementById('export-pitch-val');
+      if (pv) pv.textContent = (pSemi > 0 ? '+' : '') + pSemi;
+    }
+
+    // Tempo chip
+    const tPct = parseInt(document.getElementById('tempo-slider')?.value || 100);
+    const tChip = document.getElementById('export-tempo-chip');
+    if (tChip) {
+      tChip.style.display = tPct !== 100 ? 'flex' : 'none';
+      const tv = document.getElementById('export-tempo-val');
+      if (tv) tv.textContent = tPct;
+    }
+  }
+
+  // Hook into sliders/mutes to keep chips live
+  ['pitch-slider', 'tempo-slider'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', refreshExportChips);
+  });
+  document.querySelectorAll('.mute-btn').forEach(btn => {
+    btn.addEventListener('click', () => setTimeout(refreshExportChips, 50));
+  });
+  document.querySelectorAll('.semitone-key, .bpm-preset').forEach(btn => {
+    btn.addEventListener('click', () => setTimeout(refreshExportChips, 50));
+  });
+
+  // Initial chip state
+  setTimeout(refreshExportChips, 500);
+
+  // Export button
+  document.getElementById('export-btn').addEventListener('click', async () => {
+    const btn      = document.getElementById('export-btn');
+    const icon     = document.getElementById('export-btn-icon');
+    const statusEl = document.getElementById('export-status');
+    const progWrap = document.getElementById('export-prog-wrap');
+    const progBar  = document.getElementById('export-prog-bar');
+
+    // Gather stem states
+    const stems = {};
+    document.querySelectorAll('.stem-row').forEach(row => {
+      const key     = row.dataset.stem;
+      const volEl   = document.getElementById('vol-' + key);
+      const muteBtn = document.getElementById('mute-' + key);
+      stems[key] = {
+        volume: volEl ? parseFloat(volEl.value) / 100 : 1.0,
+        muted:  muteBtn ? muteBtn.classList.contains('muted') : false,
+      };
+    });
+
+    const pitch = parseInt(document.getElementById('pitch-slider')?.value || 0);
+    const tempo = parseInt(document.getElementById('tempo-slider')?.value || 100);
+
+    const payload = { format: exportFmt, stems, pitch, tempo };
+
+    // UI: rendering state
+    btn.disabled = true;
+    btn.classList.add('rendering');
+    icon.textContent = '⟳';
+    document.getElementById('export-btn-text').textContent = 'Rendering…';
+    statusEl.className = 'export-status';
+    statusEl.textContent = 'Mixing stems and applying effects…';
+    progWrap.style.display = 'block';
+
+    // Fake progress while server works
+    let fakePct = 0;
+    const fakeTimer = setInterval(() => {
+      fakePct = Math.min(fakePct + (90 - fakePct) * 0.04, 90);
+      progBar.style.width = fakePct + '%';
+    }, 300);
+
+    try {
+      const res = await fetch(EXPORT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      clearInterval(fakeTimer);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Server error' }));
+        throw new Error(err.error || `Server returned ${res.status}`);
+      }
+
+      progBar.style.width = '100%';
+
+      // Trigger browser download from blob
+      const blob        = await res.blob();
+      const disposition = res.headers.get('Content-Disposition') || '';
+      const nameMatch   = disposition.match(/filename="?([^"]+)"?/);
+      const filename    = nameMatch ? nameMatch[1] : `master.${exportFmt}`;
+
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
+      a.href     = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      statusEl.textContent = `✓ ${filename} downloaded!`;
+      statusEl.className   = 'export-status ok';
+
+    } catch (err) {
+      clearInterval(fakeTimer);
+      progBar.style.width  = '0%';
+      statusEl.textContent = '✗ ' + err.message;
+      statusEl.className   = 'export-status err';
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('rendering');
+      icon.textContent = '⬇';
+      document.getElementById('export-btn-text').textContent = 'Render & Download';
+      setTimeout(() => { progWrap.style.display = 'none'; progBar.style.width = '0%'; }, 3000);
+    }
+  });
+}
+
+// ── DRAGGABLE MINI PLAYER ────────────────────────────────────────────────────
+(function() {
+  const masterBar   = document.getElementById('master-bar');
+  const sentinel    = document.getElementById('player-sentinel');
+  const placeholder = document.getElementById('master-bar-placeholder');
+  const miniPlayer  = document.getElementById('mini-player');
+  const miniClose   = document.getElementById('mini-close');
+  const miniPlayBtn = document.getElementById('mini-play-btn');
+  const miniTimeline= document.getElementById('mini-timeline');
+  const miniFill    = document.getElementById('mini-fill');
+  const miniTime    = document.getElementById('mini-time');
+  const miniTrack   = document.getElementById('mini-track-name');
+  const miniVolSlider = document.getElementById('mini-vol');
+  const miniVolIcon   = document.getElementById('mini-vol-icon');
+  const dragHandle  = document.getElementById('mini-drag-handle');
+
+  if (!masterBar || !sentinel || !miniPlayer) return;
+
+  let isFloating = false;
+  let dismissed  = false; // user manually closed it
+
+  // Sync track name
+  const nameEl = masterBar.querySelector('.master-name');
+  if (nameEl) miniTrack.textContent = nameEl.textContent;
+
+  // ── Show / hide mini player ────────────────────────────────────────────
+  function showMini() {
+    if (dismissed) return;
+    isFloating = true;
+    placeholder.style.height = masterBar.offsetHeight + 'px';
+    placeholder.classList.add('active');
+    miniPlayer.classList.add('visible');
+    syncMiniState();
+  }
+
+  function hideMini() {
+    isFloating = false;
+    miniPlayer.classList.remove('visible');
+    placeholder.classList.remove('active');
+    placeholder.style.height = '0';
+    dismissed = false; // re-enable for next scroll away
+  }
+
+  miniClose.addEventListener('click', () => {
+    dismissed = true;
+    miniPlayer.classList.remove('visible');
+  });
+
+  // ── IntersectionObserver — float when sentinel leaves viewport above ───
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        hideMini();
+      } else if (e.boundingClientRect.top < 0) {
+        showMini();
+      }
+    });
+  }, { threshold: 0 });
+
+  observer.observe(sentinel);
+
+  // ── Sync playback state → mini player ─────────────────────────────────
+  function syncMiniState() {
+    const mainPlay = document.getElementById('master-play');
+    if (mainPlay) miniPlayBtn.textContent = mainPlay.textContent;
+    const mainFill = document.getElementById('master-fill');
+    if (mainFill) miniFill.style.width = mainFill.style.width;
+    const mainTime = document.getElementById('master-time');
+    if (mainTime) miniTime.textContent = mainTime.textContent;
+    const mainVol = document.getElementById('master-vol');
+    if (mainVol) miniVolSlider.value = mainVol.value;
+  }
+
+  // Poll every 500ms to keep mini in sync
+  setInterval(() => { if (isFloating) syncMiniState(); }, 500);
+
+  // Mini play button mirrors main play
+  miniPlayBtn.addEventListener('click', () => {
+    document.getElementById('master-play')?.click();
+    setTimeout(syncMiniState, 50);
+  });
+
+  // Mini timeline seek
+  miniTimeline.addEventListener('click', e => {
+    const pct = e.offsetX / miniTimeline.offsetWidth;
+    const mainTimeline = document.getElementById('master-timeline');
+    if (mainTimeline) {
+      const rect = mainTimeline.getBoundingClientRect();
+      const syntheticClick = new MouseEvent('click', {
+        bubbles: true,
+        clientX: rect.left + pct * rect.width,
+        clientY: rect.top + rect.height / 2
+      });
+      mainTimeline.dispatchEvent(syntheticClick);
+    }
+  });
+
+  // Mini volume mirrors master volume
+  miniVolSlider.addEventListener('input', () => {
+    const v = miniVolSlider.value;
+    const mainVol = document.getElementById('master-vol');
+    if (mainVol) {
+      mainVol.value = v;
+      mainVol.dispatchEvent(new Event('input'));
+    }
+    miniVolIcon.textContent = +v === 0 ? '🔇' : +v < 50 ? '🔈' : +v <= 100 ? '🔊' : '📢';
+  });
+
+  miniVolIcon.addEventListener('click', () => {
+    document.getElementById('master-vol-icon')?.click();
+    setTimeout(() => {
+      const mv = document.getElementById('master-vol');
+      if (mv) { miniVolSlider.value = mv.value; syncMiniState(); }
+    }, 50);
+  });
+
+  // ── Drag to move ───────────────────────────────────────────────────────
+  let dragging = false, dragOffX = 0, dragOffY = 0;
+
+  dragHandle.addEventListener('mousedown', e => {
+    if (e.target === miniClose) return;
+    dragging = true;
+    const rect = miniPlayer.getBoundingClientRect();
+    dragOffX = e.clientX - rect.left;
+    dragOffY = e.clientY - rect.top;
+    miniPlayer.style.transition = 'none';
+    miniPlayer.style.animation = 'none';
+    e.preventDefault();
+  });
+
+  // Touch support
+  dragHandle.addEventListener('touchstart', e => {
+    if (e.target === miniClose) return;
+    dragging = true;
+    const touch = e.touches[0];
+    const rect = miniPlayer.getBoundingClientRect();
+    dragOffX = touch.clientX - rect.left;
+    dragOffY = touch.clientY - rect.top;
+    miniPlayer.style.transition = 'none';
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    let x = e.clientX - dragOffX;
+    let y = e.clientY - dragOffY;
+    // Clamp to viewport
+    x = Math.max(0, Math.min(window.innerWidth  - miniPlayer.offsetWidth,  x));
+    y = Math.max(0, Math.min(window.innerHeight - miniPlayer.offsetHeight, y));
+    miniPlayer.style.left   = x + 'px';
+    miniPlayer.style.top    = y + 'px';
+    miniPlayer.style.bottom = 'auto';
+    miniPlayer.style.right  = 'auto';
+  });
+
+  document.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const touch = e.touches[0];
+    let x = touch.clientX - dragOffX;
+    let y = touch.clientY - dragOffY;
+    x = Math.max(0, Math.min(window.innerWidth  - miniPlayer.offsetWidth,  x));
+    y = Math.max(0, Math.min(window.innerHeight - miniPlayer.offsetHeight, y));
+    miniPlayer.style.left   = x + 'px';
+    miniPlayer.style.top    = y + 'px';
+    miniPlayer.style.bottom = 'auto';
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('mouseup',  () => { dragging = false; });
+  document.addEventListener('touchend', () => { dragging = false; });
+
+})();
+
+// ── AI MUSIC ANALYSIS ────────────────────────────────────────────────────────
+(function() {
+  const TRACK_NAME  = {{ upload.original_name | tojson }};
+  const STEMS       = {{ stem_list | tojson }};
+  const BPM         = {{ analysis.get('bpm', 0) | tojson }};
+  const KEY         = {{ analysis.get('key', 'Unknown') | tojson }};
+  const ANALYZE_URL = "{{ url_for('upload.ai_analyze', upload_id=upload.id) }}";
+
+  const toggleBtn  = document.getElementById('ai-panel-toggle');
+  const panel      = document.getElementById('ai-panel');
+  const analyzeBtn = document.getElementById('ai-analyze-btn');
+  const btnIcon    = document.getElementById('ai-btn-icon');
+  const btnText    = document.getElementById('ai-btn-text');
+  const outputEl   = document.getElementById('ai-output');
+  const trackNameEl= document.getElementById('ai-track-name');
+  const sectionsEl = document.getElementById('ai-sections');
+  const errorEl    = document.getElementById('ai-error');
+
+  // Toggle panel open/close
+  toggleBtn.addEventListener('click', () => {
+    panel.classList.toggle('open');
+  });
+
+  analyzeBtn.addEventListener('click', async () => {
+    analyzeBtn.disabled = true;
+    analyzeBtn.classList.add('loading');
+    btnIcon.textContent = '◌';
+    btnText.textContent = 'Analyzing…';
+    errorEl.style.display = 'none';
+    outputEl.classList.remove('visible');
+    sectionsEl.innerHTML = '';
+
+    const prompt = `You are an expert music producer and audio engineer. Analyze this song based on the following metadata:
+
+Track name: "${TRACK_NAME}"
+Detected key: ${KEY}
+Detected tempo: ${BPM} BPM
+Available stems: ${STEMS.join(', ')}
+
+Based on the track name, key, tempo, and available stems, provide a detailed analysis covering:
+1. GUITAR EFFECTS — Identify likely guitar effects and processing (distortion types, pedals, amp simulation, reverb/delay characteristics, modulation)
+2. VOCAL PROCESSING — Vocal effects chain, tuning, harmonies, reverb/delay, compression style
+3. DRUM PRODUCTION — Drum machine vs live, key processing techniques, specific sounds
+4. BASS CHARACTER — Bass tone, effects, DI vs amp, sub presence
+5. KEYS & SYNTHS — Types of synths/keyboards, pads, arpeggios, patches
+6. PRODUCTION STYLE — Genre, era, production techniques, mix characteristics, notable sonic signatures
+7. MOOD & ENERGY — Emotional character, dynamics, arrangement complexity
+
+Format your response ONLY as valid JSON with this exact structure:
+{
+  "sections": [
+    {
+      "id": "guitar",
+      "title": "Guitar Effects",
+      "icon": "🎸",
+      "tags": ["tag1", "tag2"],
+      "tagType": "guitar",
+      "description": "detailed description",
+      "confidence": 0.85
+    }
+  ]
+}
+
+Use tagType values: guitar, vocal, drums, bass, keys, fx, prod
+Be specific and technical. Base analysis on what is musically plausible given the track name and metadata.`;
+
+    try {
+      const response = await fetch(ANALYZE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Server error');
+
+      const text = data.text || '';
+      // Extract JSON from response
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('Could not parse AI response');
+
+      const parsed = JSON.parse(jsonMatch[0]);
+      const sections = parsed.sections || [];
+
+      // Render track name
+      trackNameEl.textContent = TRACK_NAME;
+
+      // Render sections
+      sectionsEl.innerHTML = sections.map((sec, i) => `
+        <div class="ai-section" style="animation-delay:${i * 0.08}s">
+          <div class="ai-section-title">
+            <span class="ai-section-title-icon">${sec.icon || '◆'}</span>
+            ${sec.title}
+          </div>
+          <div class="ai-tags">
+            ${(sec.tags || []).map(t => `<span class="ai-tag ai-tag-${sec.tagType || 'prod'}">${t}</span>`).join('')}
+          </div>
+          <div class="ai-section-desc">${sec.description}</div>
+          ${sec.confidence != null ? `
+          <div class="ai-confidence">
+            <span>Confidence</span>
+            <div class="ai-conf-bar">
+              <div class="ai-conf-fill" style="width:${Math.round(sec.confidence * 100)}%"></div>
+            </div>
+            <span>${Math.round(sec.confidence * 100)}%</span>
+          </div>` : ''}
+        </div>
+      `).join('');
+
+      outputEl.classList.add('visible');
+      btnIcon.textContent = '✓';
+      btnText.textContent = 'Analysis complete';
+
+      // Allow re-analysis after 3s
+      setTimeout(() => {
+        analyzeBtn.disabled = false;
+        analyzeBtn.classList.remove('loading');
+        btnIcon.textContent = '↺';
+        btnText.textContent = 'Re-analyze';
+      }, 3000);
+
+    } catch(err) {
+      errorEl.textContent = '✕ ' + (err.message || 'Analysis failed. Please try again.');
+      errorEl.style.display = 'block';
+      analyzeBtn.disabled = false;
+      analyzeBtn.classList.remove('loading');
+      btnIcon.textContent = '✦';
+      btnText.textContent = 'Analyze Track';
+    }
+  });
+})();
+// ── WAVEFORM PLAYHEAD UPDATE ──────────────────────────────────────────────────
+(function() {
+  if (typeof STATUS === 'undefined' || STATUS !== 'done') return;
+  setInterval(() => {
+    if (typeof isPlaying === 'undefined' || typeof currentRealPos === 'undefined') return;
+    const pct = trackDuration > 0 ? currentRealPos() / trackDuration : 0;
+    STEM_KEYS.forEach(key => {
+      const ph     = document.getElementById('playhead-' + key);
+      const canvas = document.getElementById('waveform-' + key);
+      if (ph && canvas) {
+        ph.style.left    = (pct * canvas.offsetWidth) + 'px';
+        ph.style.display = isPlaying ? 'block' : 'none';
+      }
+    });
+  }, 80);
+
+  // Seek on waveform click
+  document.querySelectorAll('.stem-viz').forEach(viz => {
+    viz.addEventListener('click', e => {
+      const canvas = viz.querySelector('canvas');
+      if (!canvas || typeof trackDuration === 'undefined') return;
+      const pct = e.offsetX / canvas.offsetWidth;
+      const mainTL = document.getElementById('master-timeline');
+      if (mainTL) {
+        const r = mainTL.getBoundingClientRect();
+        mainTL.dispatchEvent(new MouseEvent('click', {
+          bubbles: true,
+          clientX: r.left + pct * r.width,
+          clientY: r.top + r.height / 2
+        }));
+      }
+    });
+  });
+})();
+
+// ── REVERB ────────────────────────────────────────────────────────────────────
+(function() {
+  if (typeof STATUS === 'undefined' || STATUS !== 'done') return;
+
+  let reverbReady = false;
+  const reverbNodes = {};
+
+  function initReverb() {
+    if (reverbReady) return;
+    if (typeof ctx === 'undefined' || typeof gainNodes === 'undefined' ||
+        typeof masterGain === 'undefined' || typeof STEM_KEYS === 'undefined') return;
+    if (ctx.state !== 'running') return;
+    reverbReady = true;
+
+    // Exponential decay impulse response — hall-style reverb
+    const sr      = ctx.sampleRate;
+    const len     = Math.floor(sr * 2.5);
+    const impulse = ctx.createBuffer(2, len, sr);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = impulse.getChannelData(ch);
+      for (let i = 0; i < len; i++)
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.0);
+    }
+
+    STEM_KEYS.forEach(key => {
+      const conv = ctx.createConvolver();
+      conv.buffer = impulse;
+      const wet = ctx.createGain();
+      wet.gain.value = 0;
+      // Parallel wet path: gainNode → conv → wet → masterGain
+      // Dry path remains: gainNode → masterGain (untouched)
+      gainNodes[key].connect(conv);
+      conv.connect(wet);
+      wet.connect(masterGain);
+      reverbNodes[key] = wet;
+    });
+  }
+
+  // Wire up sliders — update fill bar + value label + audio
+  function wireSliders() {
+    document.querySelectorAll('.reverb-slider').forEach(s => {
+      const key   = s.dataset.stem;
+      const fill  = document.getElementById('rvb-fill-' + key);
+      const label = document.getElementById('rvb-val-'  + key);
+
+      s.addEventListener('input', () => {
+        const pct = parseInt(s.value);
+        if (fill)  fill.style.width = pct + '%';
+        if (label) label.textContent = pct + '%';
+
+        // Init reverb on first interaction if not ready
+        initReverb();
+
+        const wet = reverbNodes[key];
+        if (wet) {
+          wet.gain.setTargetAtTime(
+            (pct / 100) * 0.75,
+            ctx.currentTime, 0.03
+          );
+        }
+      });
+    });
+  }
+
+  // Try to init reverb once AudioContext is running
+  // Hook into master play button to catch first resume
+  document.addEventListener('click', function onFirstPlay(e) {
+    if (e.target.closest('#master-play') || e.target.closest('.stem-play')) {
+      setTimeout(() => {
+        initReverb();
+        // Re-sync any sliders that were moved before init
+        document.querySelectorAll('.reverb-slider').forEach(s => {
+          const key = s.dataset.stem;
+          const wet = reverbNodes[key];
+          if (wet && parseInt(s.value) > 0) {
+            wet.gain.setTargetAtTime((parseInt(s.value) / 100) * 0.75, ctx.currentTime, 0.03);
+          }
+        });
+      }, 100);
+    }
+  });
+
+  // Wire UI immediately
+  wireSliders();
+})();
+
+// ── LIVE CHORD DETECTION ──────────────────────────────────────────────────────
+(function() {
+  if (typeof STATUS === 'undefined' || STATUS !== 'done') return;
+
+  const CHORD_URL  = "{{ url_for('upload.ai_analyze', upload_id=upload.id) }}";
+  const TRACK_NAME = {{ upload.original_name | tojson }};
+  const KEY_META   = {{ analysis.get('key', 'Unknown') | tojson }};
+  const BPM        = {{ analysis.get('bpm', 0) | tojson }};
+
+  const toggleBtn  = document.getElementById('chord-panel-toggle');
+  const panel      = document.getElementById('chord-panel');
+  const detectBtn  = document.getElementById('chord-detect-btn');
+  const btnIcon    = document.getElementById('chord-btn-icon');
+  const btnText    = document.getElementById('chord-btn-text');
+  const outputEl   = document.getElementById('chord-output');
+  const keyRow     = document.getElementById('chord-key-row');
+  const descEl     = document.getElementById('chord-desc');
+  const progressEl = document.getElementById('chord-progression');
+  const romanRow   = document.getElementById('chord-roman-row');
+  const suggestEl  = document.getElementById('chord-suggestions');
+  const errorEl    = document.getElementById('chord-error');
+
+  if (toggleBtn) toggleBtn.addEventListener('click', () => panel.classList.toggle('open'));
+
+  // ── Live chord detection via AnalyserNode (real-time FFT) ──────────
+  let liveInterval = null;
+  let chordDisplay = null;
+  let analyserNode = null;
+  let analyserData = null;
+
+  const CHROMATIC = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const CHORD_TEMPLATES = {
+    'maj':  [1,0,0,0,1,0,0,1,0,0,0,0],
+    'min':  [1,0,0,1,0,0,0,1,0,0,0,0],
+    'dom7': [1,0,0,0,1,0,0,1,0,0,1,0],
+    'maj7': [1,0,0,0,1,0,0,1,0,0,0,1],
+    'min7': [1,0,0,1,0,0,0,1,0,0,1,0],
+    'dim':  [1,0,0,1,0,0,1,0,0,0,0,0],
+    'sus4': [1,0,0,0,0,1,0,1,0,0,0,0],
+    'aug':  [1,0,0,0,1,0,0,0,1,0,0,0],
+  };
+  const CHORD_SUFFIX = { maj:'',min:'m',dom7:'7',maj7:'maj7',min7:'m7',dim:'°',sus4:'sus4',aug:'+' };
+
+  function setupAnalyser() {
+    if (typeof ctx === 'undefined' || typeof masterGain === 'undefined') return false;
+    if (analyserNode) return true;
+    analyserNode = ctx.createAnalyser();
+    analyserNode.fftSize = 4096;
+    analyserNode.smoothingTimeConstant = 0.6;
+    masterGain.connect(analyserNode);
+    analyserData = new Float32Array(analyserNode.frequencyBinCount);
+    return true;
+  }
+
+  function getChromaFromAnalyser() {
+    if (!analyserNode || !analyserData) return null;
+    analyserNode.getFloatFrequencyData(analyserData);
+
+    const sr      = ctx.sampleRate;
+    const fftSize = analyserNode.fftSize;
+    const binHz   = sr / fftSize;
+    const chroma  = new Float32Array(12).fill(0);
+
+    // Map each FFT bin to a pitch class based on frequency
+    // Focus range: 80Hz – 2000Hz (fundamental frequencies)
+    const minBin = Math.floor(80 / binHz);
+    const maxBin = Math.ceil(2000 / binHz);
+
+    for (let i = minBin; i < Math.min(maxBin, analyserData.length); i++) {
+      const db  = analyserData[i];
+      if (db < -100) continue; // silence
+      const freq = i * binHz;
+      if (freq < 1) continue;
+      // Convert freq to MIDI note, then to pitch class
+      const midi = 12 * Math.log2(freq / 440) + 69;
+      const pc   = ((Math.round(midi) % 12) + 12) % 12;
+      // Convert dB to linear energy
+      const energy = Math.pow(10, db / 20);
+      chroma[pc] += energy;
+    }
+
+    // Normalize
+    const mx = Math.max(...chroma, 0.0001);
+    return chroma.map(v => v / mx);
+  }
+
+  function detectChordFromChroma(chroma) {
+    let best = { score: -1, root: 0, type: 'maj' };
+    for (let root = 0; root < 12; root++) {
+      for (const [type, tmpl] of Object.entries(CHORD_TEMPLATES)) {
+        let score = 0;
+        for (let i = 0; i < 12; i++)
+          score += chroma[(i + root) % 12] * tmpl[i];
+        if (score > best.score) best = { score, root, type };
+      }
+    }
+    return CHROMATIC[best.root] + (CHORD_SUFFIX[best.type] || '');
+  }
+
+  function updateLiveChord() {
+    if (typeof isPlaying === 'undefined' || !isPlaying) return;
+    if (!setupAnalyser()) return;
+    const chroma = getChromaFromAnalyser();
+    if (!chroma) return;
+    const chord = detectChordFromChroma(chroma);
+    if (chord !== chordDisplay) {
+      chordDisplay = chord;
+      renderLiveChord(chord);
+    }
+  }
+
+  function renderLiveChord(chord) {
+    const el = document.getElementById('live-chord-display');
+    if (!el) return;
+    el.textContent = chord;
+    el.style.animation = 'none';
+    requestAnimationFrame(() => {
+      el.style.animation = 'chord-pop 0.3s cubic-bezier(0.34,1.56,0.64,1)';
+    });
+  }
+
+  function startLiveDetection() {
+    if (liveInterval) clearInterval(liveInterval);
+    setupAnalyser();
+    // Update 4x per second — fast enough to feel live, light on CPU
+    liveInterval = setInterval(updateLiveChord, 250);
+  }
+  // ── AI full chord analysis ──────────────────────────────────────────
+  async function runAIChordDetection() {
+    detectBtn.disabled = true;
+    detectBtn.classList.add('loading');
+    btnIcon.textContent = '◌';
+    btnText.textContent = 'Analyzing…';
+    errorEl.style.display = 'none';
+    outputEl.classList.remove('visible');
+
+    const prompt = `You are an expert music theorist. Analyze the chord progression for this song:
+Track: "${TRACK_NAME}"
+Detected Key: ${KEY_META}
+Tempo: ${BPM} BPM
+
+Provide the most likely chord progression, Roman numeral analysis, scale, and tips.
+Respond ONLY with valid JSON, no markdown:
+{
+  "key": "A minor",
+  "scale": "Natural Minor",
+  "description": "Brief harmonic description",
+  "chords": [
+    {"name": "Am", "function": "Tonic", "roman": "i"},
+    {"name": "F", "function": "Submediant", "roman": "VI"},
+    {"name": "C", "function": "Mediant", "roman": "III"},
+    {"name": "G", "function": "Subtonic", "roman": "VII"}
+  ],
+  "tonicChord": "Am",
+  "suggestions": "Tips for musicians to play along"
+}`;
+
+    try {
+      const res  = await fetch(CHORD_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Server error');
+      const match = (data.text || '').match(/\{[\s\S]*\}/);
+      if (!match) throw new Error('Could not parse response');
+      const j = JSON.parse(match[0]);
+
+      keyRow.innerHTML = `<span class="chord-key-chip">${j.key||KEY_META}</span><span class="chord-scale-chip">${j.scale||''}</span>`;
+      descEl.textContent = j.description || '';
+      progressEl.innerHTML = (j.chords||[]).map((c,i) => `
+        <div class="chord-block" style="animation-delay:${i*0.06}s">
+          <div class="chord-name${c.name===j.tonicChord?' tonic':''}">${c.name}</div>
+          <div class="chord-function">${c.function||''}</div>
+        </div>`).join('');
+      romanRow.innerHTML = `<span class="chord-roman-label">Analysis:</span>${(j.chords||[]).map(c=>`<span class="chord-roman">${c.roman}</span>`).join('')}`;
+      suggestEl.textContent = j.suggestions || '';
+      outputEl.classList.add('visible');
+
+      // Start live detection once AI gives us context
+      startLiveDetection();
+      const liveWrap = document.getElementById('live-chord-wrap');
+      if (liveWrap) liveWrap.style.display = 'block';
+
+      btnIcon.textContent = '✓';
+      btnText.textContent = 'Live — detecting…';
+      detectBtn.disabled = false;
+      detectBtn.classList.remove('loading');
+    } catch(err) {
+      errorEl.textContent = '✕ ' + (err.message || 'Detection failed');
+      errorEl.style.display = 'block';
+      detectBtn.disabled = false;
+      detectBtn.classList.remove('loading');
+      btnIcon.textContent = '♪';
+      btnText.textContent = 'Detect Chords';
+    }
+  }
+
+  function startLiveDetection() {
+    if (liveInterval) clearInterval(liveInterval);
+    liveInterval = setInterval(updateLiveChord, 500);
+  }
+
+  if (detectBtn) detectBtn.addEventListener('click', runAIChordDetection);
+})();
+</script>
+{% endblock %}

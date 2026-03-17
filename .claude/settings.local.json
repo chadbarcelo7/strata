@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/c/Users/chadb/Desktop/musica-stem/venv311/Scripts/python.exe -c \"\nimport sys\nsys.path.insert\\(0, '.'\\)\nfrom app import create_app\ntry:\n    app = create_app\\(\\)\n    print\\('create_app OK'\\)\nexcept Exception as e:\n    import traceback; traceback.print_exc\\(\\)\n\" 2>&1)",
+      "Bash(/c/Users/chadb/Desktop/musica-stem/venv311/Scripts/python.exe -W all -c \"\nimport sys, warnings\nwarnings.filterwarnings\\('error'\\)\nsys.path.insert\\(0, '.'\\)\nfrom app import create_app, db\nfrom app.models.user import User\nfrom app.models.upload import Upload\napp = create_app\\(\\)\nwith app.app_context\\(\\):\n    db.create_all\\(\\)\n    print\\('All OK'\\)\n\" 2>&1)",
+      "Bash(/c/Users/chadb/Desktop/musica-stem/venv311/Scripts/python.exe -W error::DeprecationWarning -c \"\nimport sys\nsys.path.insert\\(0, '.'\\)\nfrom app import create_app, db\nfrom app.models.user import User\nfrom app.models.upload import Upload\napp = create_app\\(\\)\nwith app.app_context\\(\\):\n    db.create_all\\(\\)\n    u = User.query.get\\(1\\)\n    print\\('User.query.get\\(\\) OK'\\)\n    up = Upload.query.get\\(1\\)\n    print\\('Upload.query.get\\(\\) OK'\\)\n\" 2>&1)",
+      "Bash(/c/Users/chadb/Desktop/musica-stem/venv311/Scripts/python.exe -c \"import librosa; print\\(librosa.__version__\\)\" 2>&1)",
+      "Bash(start:*)",
+      "Bash(/c/Users/chadb/Desktop/musica-stem/venv311/Scripts/yt-dlp.exe --version)",
+      "Bash(/c/Users/chadb/Desktop/musica-stem/venv311/Scripts/python.exe -c \"\nimport os, sys\n_YTDLP = os.path.join\\(os.path.dirname\\(sys.executable\\), 'yt-dlp.exe'\\)\nprint\\('yt-dlp path:', _YTDLP\\)\nprint\\('exists:', os.path.exists\\(_YTDLP\\)\\)\n\")",
+      "Bash(/c/Users/chadb/Desktop/musica-stem/venv311/Scripts/python.exe -c \"\nimport sys\nsys.path.insert\\(0, '.'\\)\nfrom app import create_app, db\nfrom app.models.user import User\napp = create_app\\(\\)\nclient = app.test_client\\(\\)\n\nwith app.app_context\\(\\):\n    db.create_all\\(\\)\n    pages = [\n        \\('GET', '/'\\),\n        \\('GET', '/auth/login'\\),\n        \\('GET', '/auth/register'\\),\n    ]\n    for method, path in pages:\n        r = client.get\\(path\\)\n        body = r.data.decode\\('utf-8', errors='replace'\\)\n        has_strata = 'Strata' in body or 'STRATA' in body\n        has_rajdhani = 'Rajdhani' in body\n        print\\(f'{path:25} -> {r.status_code}  Strata:{has_strata}  Rajdhani:{has_rajdhani}'\\)\n\" 2>&1)",
+      "Bash(git --version)",
+      "Bash(git config:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}
