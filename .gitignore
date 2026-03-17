@@ -18,6 +18,7 @@ env/
 # Flask / runtime
 instance/
 .env
+env
 *.db
 *.sqlite3
 
