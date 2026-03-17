@@ -44,8 +44,11 @@ def _safe_filename(title: str) -> str:
 def _download_thread(app, job_id: str, url: str, fmt: str):
     """Background thread: runs yt-dlp and updates job status."""
     with app.app_context():
-        out_dir = app.config['OUTPUT_FOLDER']
+        # Save downloads to ~/Downloads/Strata_Stem/download/
+        strata_root = os.path.join(os.path.expanduser('~'), 'Downloads', 'Strata_Stem')
+        out_dir = os.path.join(strata_root, 'download')
         os.makedirs(out_dir, exist_ok=True)
+        os.makedirs(os.path.join(strata_root, 'Stem_output'), exist_ok=True)
 
         uid       = uuid.uuid4().hex[:8]
         tmpl_base = os.path.join(out_dir, f'ytdl_{uid}_%(title)s')
@@ -126,14 +129,16 @@ def _download_thread(app, job_id: str, url: str, fmt: str):
             if not candidates:
                 raise RuntimeError('Download completed but output file not found.')
 
-            filename = candidates[0]
+            filename  = candidates[0]
+            file_path = os.path.join(out_dir, filename)
 
             with _jobs_lock:
                 _jobs[job_id].update({
-                    'status':   'done',
-                    'filename': filename,
-                    'title':    title,
-                    'duration': duration,
+                    'status':    'done',
+                    'filename':  filename,
+                    'file_path': file_path,
+                    'title':     title,
+                    'duration':  duration,
                     'thumb':    thumb,
                     'format':   fmt,
                     'error':    None,

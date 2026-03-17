@@ -21,10 +21,11 @@ class Config:
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(os.path.dirname(__file__), "groovefarm.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False  # Silence deprecation warning
 
-    # ── File Uploads ────────────────────────────────────────────────────────
-    MAX_CONTENT_LENGTH = int(os.environ.get("MAX_UPLOAD_MB", 100)) * 1024 * 1024
-    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "app", "static", "uploads")
-    OUTPUT_FOLDER = os.path.join(os.path.dirname(__file__), "app", "static", "outputs")
+    # ── File Storage — local Downloads/Strata_Stem (no hosting storage used) ──
+    MAX_CONTENT_LENGTH = int(os.environ.get("MAX_UPLOAD_MB", 500)) * 1024 * 1024
+    _STRATA_ROOT  = os.path.join(os.path.expanduser("~"), "Downloads", "Strata_Stem")
+    UPLOAD_FOLDER = os.path.join(_STRATA_ROOT, "download")
+    OUTPUT_FOLDER = os.path.join(_STRATA_ROOT, "Stem_output")
     ALLOWED_EXTENSIONS = {"mp3", "wav", "flac", "ogg", "m4a", "aiff"}
 
     # ── Celery (background tasks) ───────────────────────────────────────────

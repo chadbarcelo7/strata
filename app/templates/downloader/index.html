@@ -286,6 +286,31 @@
   }
   .result-dl:hover { color: #80ff80; }
 
+  /* Separate Stems button */
+  .separate-btn {
+    width: 100%; margin-top: 0.6rem;
+    padding: 0.75rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: #0a0800;
+    background: linear-gradient(180deg, #e89a14 0%, #c07808 55%, #a46008 100%);
+    border: 1px solid #7a4800; border-top-color: #f0a830;
+    border-radius: var(--r-sm);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 14px rgba(0,0,0,0.5), 0 0 14px rgba(212,134,10,0.12);
+    cursor: pointer; display: none;
+    align-items: center; justify-content: center; gap: 0.5rem;
+    text-shadow: 0 1px 0 rgba(255,200,80,0.4);
+    transition: all 0.1s;
+  }
+  .separate-btn.visible { display: flex; }
+  .separate-btn:hover {
+    background: linear-gradient(180deg, #f0a830 0%, #d08818 55%, #b07010 100%);
+    transform: translateY(-1px);
+  }
+  .separate-btn:active { transform: translateY(1px); box-shadow: inset 0 3px 6px rgba(0,0,0,0.6); }
+  .separate-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
   /* ── HISTORY ─────────────────────────────────────────────────────── */
   .dl-history { display: none; margin-top: 0.75rem; }
   .dl-hist-title {
@@ -404,6 +429,9 @@
           </div>
           <a class="result-dl" id="result-dl" href="#" style="display:none">▼ Save</a>
         </div>
+        <button class="separate-btn" id="separate-btn">
+          ⬡ Separate Stems
+        </button>
       </div>
     </div>
 
@@ -427,21 +455,25 @@ const START_URL  = "{{ url_for('downloader.start') }}";
 const STATUS_URL = "{{ url_for('downloader.job_status', job_id='JOB_ID') }}";
 const FILE_URL   = "{{ url_for('downloader.get_file', job_id='JOB_ID') }}";
 
-const urlInput   = document.getElementById('yt-url');
-const dlBtn      = document.getElementById('dl-btn');
-const dlIcon     = document.getElementById('dl-icon');
-const dlText     = document.getElementById('dl-text');
-const dlLed      = document.getElementById('dlLed');
-const resultCard = document.getElementById('result-card');
-const resultBar  = document.getElementById('result-bar');
-const statusEl   = document.getElementById('result-status');
-const statusTxt  = document.getElementById('result-status-txt');
-const trackEl    = document.getElementById('result-track');
-const titleEl    = document.getElementById('result-title');
-const subEl      = document.getElementById('result-sub');
-const dlLink     = document.getElementById('result-dl');
-const histDiv    = document.getElementById('dl-history');
-const histList   = document.getElementById('hist-list');
+const SEPARATE_URL = "{{ url_for('upload.from_download') }}";
+const MIXER_BASE   = "{{ url_for('upload.status', upload_id=0) }}".replace('/0', '/');
+
+const urlInput    = document.getElementById('yt-url');
+const dlBtn       = document.getElementById('dl-btn');
+const dlIcon      = document.getElementById('dl-icon');
+const dlText      = document.getElementById('dl-text');
+const dlLed       = document.getElementById('dlLed');
+const resultCard  = document.getElementById('result-card');
+const resultBar   = document.getElementById('result-bar');
+const statusEl    = document.getElementById('result-status');
+const statusTxt   = document.getElementById('result-status-txt');
+const trackEl     = document.getElementById('result-track');
+const titleEl     = document.getElementById('result-title');
+const subEl       = document.getElementById('result-sub');
+const dlLink      = document.getElementById('result-dl');
+const separateBtn = document.getElementById('separate-btn');
+const histDiv     = document.getElementById('dl-history');
+const histList    = document.getElementById('hist-list');
 
 let fmt = 'mp3';
 document.querySelectorAll('.format-opt').forEach(opt => {
@@ -492,6 +524,8 @@ dlBtn.addEventListener('click', async () => {
   dlLed.classList.add('on');
   resultCard.classList.add('visible');
   trackEl.classList.remove('visible'); dlLink.style.display = 'none';
+  separateBtn.classList.remove('visible'); separateBtn.disabled = false;
+  separateBtn.textContent = '⬡ Separate Stems';
   setStatus('loading', 'Fetching video info…');
   startBar();
 
@@ -525,8 +559,30 @@ dlBtn.addEventListener('click', async () => {
         trackEl.classList.add('visible');
         dlLink.href = FILE_URL.replace('JOB_ID', jobId);
         dlLink.style.display = 'flex';
-        setStatus('done', '✓ Ready to save');
+        setStatus('done', '✓ Saved to ~/Downloads/Strata_Stem/download/');
         addHistory(j.title||'Unknown', j.format, jobId);
+
+        // Show Separate Stems button
+        separateBtn.classList.add('visible');
+        separateBtn.onclick = async () => {
+          separateBtn.disabled = true;
+          separateBtn.textContent = '⟳ Starting separation…';
+          try {
+            const r = await fetch(SEPARATE_URL, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({ filename: j.filename, title: j.title })
+            });
+            const d = await r.json();
+            if (!r.ok) throw new Error(d.error || 'Failed');
+            window.location.href = MIXER_BASE + d.upload_id;
+          } catch(e) {
+            separateBtn.disabled = false;
+            separateBtn.textContent = '⬡ Separate Stems';
+            alert('Error: ' + e.message);
+          }
+        };
+
         reset();
         const a = document.createElement('a'); a.href = dlLink.href; a.download=''; a.click();
       } else if (j.status === 'error') {

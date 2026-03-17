@@ -105,45 +105,58 @@ def _run_separation_thread(app, upload_id, input_path):
 @upload_bp.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
+    """
+    File upload disabled — all audio comes through the YouTube downloader.
+    POST from the downloader triggers separation via /upload/from-download.
+    GET redirects users to the downloader page.
+    """
     if request.method == 'POST':
-        if 'audio_file' not in request.files:
-            flash('No file field in the form.', 'danger')
-            return redirect(request.url)
-        file = request.files['audio_file']
-        if file.filename == '':
-            flash('Please select a file before uploading.', 'warning')
-            return redirect(request.url)
-        if not _allowed_file(file.filename):
-            flash('Unsupported file type. Allowed: mp3, wav, flac, ogg, m4a, aiff', 'danger')
-            return redirect(request.url)
+        flash('Direct upload is disabled. Use the Download page to fetch audio from YouTube, then separate from there.', 'info')
+    return redirect(url_for('downloader.index'))
 
-        original_name = secure_filename(file.filename)
-        ext           = original_name.rsplit('.', 1)[1].lower()
-        stored_name   = uuid.uuid4().hex + '.' + ext
-        save_path     = os.path.join(current_app.config['UPLOAD_FOLDER'], stored_name)
-        file.save(save_path)
 
-        upload = Upload(
-            user_id=current_user.id,
-            original_name=original_name,
-            stored_name=stored_name,
-            status='pending',
-        )
-        db.session.add(upload)
-        db.session.commit()
+@upload_bp.route('/from-download', methods=['POST'])
+@login_required
+def from_download():
+    """
+    Triggered by the downloader page after a YouTube audio file is ready.
+    POST JSON: { "job_id": "<yt-dlp job id>", "filename": "<file in OUTPUT_FOLDER>" }
+    Creates an Upload record and kicks off stem separation.
+    """
+    data      = request.get_json(force=True) or {}
+    filename  = data.get('filename', '').strip()
+    title     = data.get('title', filename).strip() or filename
 
-        app = current_app._get_current_object()
-        t = threading.Thread(
-            target=_run_separation_thread,
-            args=(app, upload.id, save_path),
-            daemon=True
-        )
-        t.start()
+    if not filename:
+        return jsonify(error='No filename provided'), 400
 
-        flash(original_name + ' uploaded! Separation is in progress.', 'info')
-        return redirect(url_for('upload.status', upload_id=upload.id))
+    # File lives in Strata_Stem/download/
+    file_path = os.path.join(current_app.config['OUTPUT_FOLDER'].replace('Stem_output', 'download'), filename)
+    if not os.path.exists(file_path):
+        # Also check directly in OUTPUT_FOLDER
+        file_path = os.path.join(current_app.config['OUTPUT_FOLDER'], filename)
+    if not os.path.exists(file_path):
+        return jsonify(error='Audio file not found on server'), 404
 
-    return render_template('upload/upload.html')
+    upload = Upload(
+        user_id=current_user.id,
+        original_name=title or filename,
+        stored_name=filename,
+        status='pending',
+    )
+    db.session.add(upload)
+    db.session.commit()
+
+    app = current_app._get_current_object()
+    t = threading.Thread(
+        target=_run_separation_thread,
+        args=(app, upload.id, file_path),
+        daemon=True,
+    )
+    t.start()
+
+    return jsonify(upload_id=upload.id,
+                   status_url=url_for('upload.status', upload_id=upload.id))
 
 
 @upload_bp.route('/status/<int:upload_id>')
@@ -395,24 +408,27 @@ def export_mix(upload_id):
     # ── Peak-normalize to −1 dBFS to prevent clipping ────────────────────
     mix = pydub_normalize(mix, headroom=1.0)
 
-    # ── Render to in-memory buffer ────────────────────────────────────────
-    buf  = io.BytesIO()
-    base = os.path.splitext(upload.original_name)[0]
+    # ── Render to disk in Stem_output/ ───────────────────────────────────
+    base     = os.path.splitext(upload.original_name)[0]
+    out_dir  = current_app.config['OUTPUT_FOLDER']
+    os.makedirs(out_dir, exist_ok=True)
 
     if fmt == 'wav':
-        mix = mix.set_frame_rate(44100).set_sample_width(2)   # 16-bit PCM 44.1kHz
-        mix.export(buf, format='wav')
+        mix      = mix.set_frame_rate(44100).set_sample_width(2)  # 16-bit PCM 44.1kHz
         filename = f'{base}_master.wav'
         mimetype = 'audio/wav'
+        disk_path = os.path.join(out_dir, filename)
+        mix.export(disk_path, format='wav')
     else:
-        mix.export(buf, format='mp3', bitrate='320k',
-                   tags={'title': base, 'artist': 'Groove Lab'})
-        filename = f'{base}_master_320.mp3'
-        mimetype = 'audio/mpeg'
+        filename  = f'{base}_master_320.mp3'
+        mimetype  = 'audio/mpeg'
+        disk_path = os.path.join(out_dir, filename)
+        mix.export(disk_path, format='mp3', bitrate='320k',
+                   tags={'title': base, 'artist': 'Strata'})
 
-    buf.seek(0)
-    return send_file(buf, mimetype=mimetype,
-                     as_attachment=True, download_name=filename)
+    return send_from_directory(out_dir, filename,
+                               as_attachment=True,
+                               download_name=filename)
 
 
 # ── AI ANALYSIS ROUTE (Groq) ──────────────────────────────────────────────────
